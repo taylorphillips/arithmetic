@@ -1,0 +1,12 @@
+# Rider
+.idea/
+
+# Vim
+[._]*.sw[a-p]
+
+# MacOS
+.DS_Store
+
+
+# Mono
+.mono/
