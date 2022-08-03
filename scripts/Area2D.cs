@@ -1,32 +1,28 @@
 using Godot;
 using System;
-using System.Data;
+using System.Configuration;
 using Object = Godot.Object;
 
-public class Kinematic : KinematicBody2D
+public class Area2D : Godot.Area2D
 {
+    private Polygon2D poly;
     private bool selected = false;
-    private CollisionPolygon2D collisionPolygon2D;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
-        InputPickable = true;
-
-        Polygon2D poly = new Polygon2D();
-        poly.Color = Colors.White;
+        poly = new Polygon2D();
+        poly.Color = Colors.Red;
         poly.Polygon = new Vector2[] {
             new Vector2(-10, -10),
             new Vector2(10, -10),
             new Vector2(10, 10),
             new Vector2(-10, 10),
         };
-        collisionPolygon2D = new CollisionPolygon2D();
+        CollisionPolygon2D collisionPolygon2D = new CollisionPolygon2D();
         collisionPolygon2D.Polygon = poly.Polygon;
         AddChild(poly);
         AddChild(collisionPolygon2D);
     }
-
-    public override void _Process(float delta) { }
 
 
     public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
@@ -42,23 +38,24 @@ public class Kinematic : KinematicBody2D
         }
     }
 
-    public override void _Input(InputEvent @event) {
-        if (@event is InputEventKey inputEvent) {
-            if (@event.IsPressed() && inputEvent.Scancode == (uint) KeyList.Space) {
-                GD.Print("SPACEBAR");
-            }
-        }
+    public void _OnMouseEnter() {
+        poly.Color = Colors.Blue;
+    }
+
+    public void _OnMouseExit() {
+        poly.Color = Colors.Red;
+    }
+
+    public void _OnAreaEntered(Area2D area2D) {
+        GD.Print(Name + " has been entered by " + area2D.Name);
+    }
+
+    public void _OnAreaExited(Area2D area2D) {
+        GD.Print(Name + " has been exited by " + area2D.Name);
     }
 
     public override void _PhysicsProcess(float delta) {
         if (selected) {
-            Vector2 relVec = GetGlobalMousePosition() - GlobalPosition;
-            KinematicCollision2D collision = MoveAndCollide(Vector2.Zero, true, true, true);
-            if (collision != null) {
-                Node2D node = (Node2D) collision.Collider;
-                GD.Print(node.Name + "," + node.GlobalPosition);
-            }
-
             Transform2D transform = GlobalTransform;
             transform.origin = GetGlobalMousePosition();
             GlobalTransform = transform;
