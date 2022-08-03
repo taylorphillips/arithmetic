@@ -1,6 +1,7 @@
 using Godot;
 using System;
 using System.Data;
+using Object = Godot.Object;
 
 public class Block : RigidBody2D
 {
@@ -9,6 +10,9 @@ public class Block : RigidBody2D
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
+        ContactMonitor = true;
+        InputPickable = true;
+
         Polygon2D poly = new Polygon2D();
         poly.Color = Colors.White;
         poly.Polygon = new Vector2[] {
@@ -25,12 +29,10 @@ public class Block : RigidBody2D
 
     public override void _Process(float delta) { }
 
-    public override void _Input(InputEvent @event) {
-        if (@event is InputEventKey inputEvent) {
-            if (@event.IsPressed() && inputEvent.Scancode == (uint) KeyList.Space) {
-                GD.Print("SPACEBAR");
-            }
-        } else if (@event is InputEventMouseButton mouseEvent) {
+
+    public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
+        base._InputEvent(viewport, @event, shapeIdx);
+        if (@event is InputEventMouseButton mouseEvent) {
             if (mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
                 GD.Print("LEFT CLICK");
                 selected = true;
@@ -41,6 +43,7 @@ public class Block : RigidBody2D
                 GD.Print("LEFT UNCLICK");
                 selected = false;
                 Mode = ModeEnum.Rigid;
+
                 // Wakes up the sleeping rigid body
                 Sleeping = false;
                 //ApplyImpulse(Vector2.Zero, Vector2.Zero);
@@ -48,11 +51,24 @@ public class Block : RigidBody2D
         }
     }
 
+    public override void _Input(InputEvent @event) {
+        if (@event is InputEventKey inputEvent) {
+            if (@event.IsPressed() && inputEvent.Scancode == (uint) KeyList.Space) {
+                GD.Print("SPACEBAR");
+            }
+        }
+    }
+
+
     public override void _PhysicsProcess(float delta) {
         if (selected) {
             Transform2D transform = GlobalTransform;
             transform.origin = GetGlobalMousePosition();
             GlobalTransform = transform;
+        }
+
+        if (GetCollidingBodies().Count > 0) {
+            GD.Print("COLLISIONS: " + GetCollidingBodies());
         }
     }
 }
