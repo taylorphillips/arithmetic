@@ -5,7 +5,6 @@ using System.Data;
 public class Block : RigidBody2D
 {
     private bool selected = false;
-    private Vector2 mousePosition;
     private CollisionPolygon2D collisionPolygon2D;
 
     // Called when the node enters the scene tree for the first time.
@@ -24,17 +23,7 @@ public class Block : RigidBody2D
         AddChild(collisionPolygon2D);
     }
 
-    public override void _Process(float delta) {
-    }
-
-    public override void _IntegrateForces(Physics2DDirectBodyState state) {
-        if (selected) {
-            Transform2D transform = new Transform2D();
-            transform.origin = mousePosition;
-            LinearVelocity = Vector2.Zero;
-            state.Transform = transform;
-        }
-    }
+    public override void _Process(float delta) { }
 
     public override void _Input(InputEvent @event) {
         if (@event is InputEventKey inputEvent) {
@@ -45,23 +34,25 @@ public class Block : RigidBody2D
             if (mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
                 GD.Print("LEFT CLICK");
                 selected = true;
-                mousePosition = mouseEvent.GlobalPosition;
-                //this.Mode = ModeEnum.Static;
+                LinearVelocity = Vector2.Zero;
+                AngularVelocity = 0f;
+                Mode = ModeEnum.Static;
             } else if (!mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
                 GD.Print("LEFT UNCLICK");
                 selected = false;
-                //this.Mode = ModeEnum.Rigid;
-            }
-        } else if (@event is InputEventMouseMotion mouseMotion) {
-            if (selected) {
-                // Adjust Transform??
-                mousePosition = mouseMotion.GlobalPosition;
-                GD.Print("TRACKING");
+                Mode = ModeEnum.Rigid;
+                // Wakes up the sleeping rigid body
+                Sleeping = false;
+                //ApplyImpulse(Vector2.Zero, Vector2.Zero);
             }
         }
     }
-    
+
     public override void _PhysicsProcess(float delta) {
-        base._PhysicsProcess(delta);
+        if (selected) {
+            Transform2D transform = GlobalTransform;
+            transform.origin = GetGlobalMousePosition();
+            GlobalTransform = transform;
+        }
     }
 }
