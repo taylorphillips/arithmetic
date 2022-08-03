@@ -22,6 +22,8 @@ public class Area2D : Godot.Area2D
         collisionPolygon2D.Polygon = poly.Polygon;
         AddChild(poly);
         AddChild(collisionPolygon2D);
+        Connect("mouse_entered", this, "_OnMouseEnter");
+        Connect("mouse_exited", this, "_OnMouseExit");
     }
 
 
@@ -40,6 +42,7 @@ public class Area2D : Godot.Area2D
 
     public void _OnMouseEnter() {
         poly.Color = Colors.Blue;
+        GD.Print("ENTERED");
     }
 
     public void _OnMouseExit() {

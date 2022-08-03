@@ -39,9 +39,5 @@ script = ExtResource( 3 )
 
 [connection signal="area_entered" from="Area2D_1" to="Area2D_1" method="_OnAreaEntered"]
 [connection signal="area_exited" from="Area2D_1" to="Area2D_1" method="_OnAreaExited"]
-[connection signal="mouse_entered" from="Area2D_1" to="Area2D_1" method="_OnMouseEnter"]
-[connection signal="mouse_exited" from="Area2D_1" to="Area2D_1" method="_OnMouseExit"]
 [connection signal="area_entered" from="Area2D_2" to="Area2D_2" method="_OnAreaEntered"]
 [connection signal="area_exited" from="Area2D_2" to="Area2D_2" method="_OnAreaExited"]
-[connection signal="mouse_entered" from="Area2D_2" to="Area2D_2" method="_OnMouseEnter"]
-[connection signal="mouse_exited" from="Area2D_2" to="Area2D_2" method="_OnMouseExit"]
