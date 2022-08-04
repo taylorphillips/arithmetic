@@ -1,30 +1,33 @@
 using Godot;
 using System;
-using System.Configuration;
+using System.Data;
 using Object = Godot.Object;
 
-public class Area2D : Godot.Area2D
+public class RigidBodyTest : RigidBody2D
 {
-    private Polygon2D poly;
     private bool selected = false;
+    private CollisionPolygon2D collisionPolygon2D;
 
     // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
-        poly = new Polygon2D();
-        poly.Color = Colors.Red;
+        ContactMonitor = true;
+        InputPickable = true;
+
+        Polygon2D poly = new Polygon2D();
+        poly.Color = Colors.White;
         poly.Polygon = new Vector2[] {
             new Vector2(-10, -10),
             new Vector2(10, -10),
             new Vector2(10, 10),
             new Vector2(-10, 10),
         };
-        CollisionPolygon2D collisionPolygon2D = new CollisionPolygon2D();
+        collisionPolygon2D = new CollisionPolygon2D();
         collisionPolygon2D.Polygon = poly.Polygon;
         AddChild(poly);
         AddChild(collisionPolygon2D);
-        Connect("mouse_entered", this, "_OnMouseEnter");
-        Connect("mouse_exited", this, "_OnMouseExit");
     }
+
+    public override void _Process(float delta) { }
 
 
     public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
@@ -33,35 +36,39 @@ public class Area2D : Godot.Area2D
             if (mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
                 GD.Print("LEFT CLICK");
                 selected = true;
+                LinearVelocity = Vector2.Zero;
+                AngularVelocity = 0f;
+                Mode = ModeEnum.Static;
             } else if (!mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
                 GD.Print("LEFT UNCLICK");
                 selected = false;
+                Mode = ModeEnum.Rigid;
+
+                // Wakes up the sleeping rigid body
+                Sleeping = false;
+                //ApplyImpulse(Vector2.Zero, Vector2.Zero);
             }
         }
     }
 
-    public void _OnMouseEnter() {
-        poly.Color = Colors.Blue;
-        GD.Print("ENTERED");
+    public override void _Input(InputEvent @event) {
+        if (@event is InputEventKey inputEvent) {
+            if (@event.IsPressed() && inputEvent.Scancode == (uint) KeyList.Space) {
+                GD.Print("SPACEBAR");
+            }
+        }
     }
 
-    public void _OnMouseExit() {
-        poly.Color = Colors.Red;
-    }
-
-    public void _OnAreaEntered(Area2D area2D) {
-        GD.Print(Name + " has been entered by " + area2D.Name);
-    }
-
-    public void _OnAreaExited(Area2D area2D) {
-        GD.Print(Name + " has been exited by " + area2D.Name);
-    }
 
     public override void _PhysicsProcess(float delta) {
         if (selected) {
             Transform2D transform = GlobalTransform;
             transform.origin = GetGlobalMousePosition();
             GlobalTransform = transform;
+        }
+
+        if (GetCollidingBodies().Count > 0) {
+            GD.Print("COLLISIONS: " + GetCollidingBodies());
         }
     }
 }

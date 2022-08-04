@@ -1,8 +1,6 @@
-[gd_scene load_steps=4 format=2]
+[gd_scene load_steps=2 format=2]
 
 [ext_resource path="res://scripts/Block.cs" type="Script" id=1]
-[ext_resource path="res://scripts/Kinematic.cs" type="Script" id=2]
-[ext_resource path="res://scripts/Area2D.cs" type="Script" id=3]
 
 [node name="Node2D" type="Node2D"]
 
@@ -14,30 +12,10 @@ position = Vector2( -414, -537 )
 build_mode = 1
 polygon = PoolVector2Array( 472, 442, 580, 535, 661, 567, 856, 600, 169, 640, 76, 515 )
 
-[node name="Test1" type="RigidBody2D" parent="."]
-position = Vector2( 520, 284 )
-mode = 3
-can_sleep = false
+[node name="Node2D_1" type="Node2D" parent="."]
+position = Vector2( 291, 185 )
 script = ExtResource( 1 )
 
-[node name="Test2" type="RigidBody2D" parent="."]
-position = Vector2( 98, 78 )
-can_sleep = false
+[node name="Node2D_2" type="Node2D" parent="."]
+position = Vector2( 652, 279 )
 script = ExtResource( 1 )
-
-[node name="KinematicBody2D" type="KinematicBody2D" parent="."]
-position = Vector2( 813, 488 )
-script = ExtResource( 2 )
-
-[node name="Area2D_1" type="Area2D" parent="."]
-position = Vector2( 354, 220 )
-script = ExtResource( 3 )
-
-[node name="Area2D_2" type="Area2D" parent="."]
-position = Vector2( 387, 160 )
-script = ExtResource( 3 )
-
-[connection signal="area_entered" from="Area2D_1" to="Area2D_1" method="_OnAreaEntered"]
-[connection signal="area_exited" from="Area2D_1" to="Area2D_1" method="_OnAreaExited"]
-[connection signal="area_entered" from="Area2D_2" to="Area2D_2" method="_OnAreaEntered"]
-[connection signal="area_exited" from="Area2D_2" to="Area2D_2" method="_OnAreaExited"]
