@@ -4,6 +4,10 @@ using Object = Godot.Object;
 
 public class Block : Node2D
 {
+    public ConnectorArea2D inputConnector;
+    public ConnectorArea2D outputConnector;
+    public Vector2? snapPosition;
+
     public class SelectableArea2D : Area2D
     {
         private Polygon2D poly;
@@ -41,7 +45,6 @@ public class Block : Node2D
 
         public void _OnMouseEnter() {
             poly.Color = Colors.Blue;
-            GD.Print("ENTERED");
         }
 
         public void _OnMouseExit() {
@@ -50,9 +53,16 @@ public class Block : Node2D
 
         public override void _PhysicsProcess(float delta) {
             if (selected) {
-                Transform2D transform = GlobalTransform;
-                transform.origin = GetGlobalMousePosition();
-                GetParent<Node2D>().Transform = transform;
+                Block block = GetParent<Block>();
+                if (block.snapPosition.HasValue) {
+                    Transform2D transform = GlobalTransform;
+                    transform.origin = block.snapPosition.Value;
+                    GetParent<Node2D>().Transform = transform;
+                } else {
+                    Transform2D transform = GlobalTransform;
+                    transform.origin = GetGlobalMousePosition();
+                    GetParent<Node2D>().Transform = transform;
+                }
             }
         }
     }
@@ -66,19 +76,21 @@ public class Block : Node2D
         }
 
         private readonly ConnectorType connectorType;
-        private readonly Vector2 initGlobalPosition;
+        private readonly Vector2 initPosition;
+        private ConnectorArea2D connectedConnector;
+        private ConnectorArea2D snappedConnector;
 
-        public ConnectorArea2D(ConnectorType connectorType, Vector2 globalPosition) {
+        public ConnectorArea2D(ConnectorType connectorType, Vector2 initPosition) {
             this.connectorType = connectorType;
-            initGlobalPosition = globalPosition;
+            this.initPosition = initPosition;
         }
 
         public override void _Ready() {
             CircleShape2D circle = new CircleShape2D();
-            circle.Radius = 10;
+            circle.Radius = 20;
             CollisionShape2D collisionShape2D = new CollisionShape2D();
             collisionShape2D.Shape = circle;
-            Position = initGlobalPosition;
+            Position = initPosition;
             AddChild(collisionShape2D);
             Name = "Connector" + connectorType;
             Connect("area_entered", this, "_OnAreaEnter");
@@ -92,19 +104,33 @@ public class Block : Node2D
         public void _OnAreaEnter(Area2D area2D) {
             GD.Print(Name + " has been entered by " + area2D.Name);
             if (area2D is ConnectorArea2D connectorArea2D && ConnectsTo(connectorArea2D)) {
-                GD.Print("CONNECTABLE");
+                snappedConnector = connectorArea2D;
+                GetParent<Block>().snapPosition = snapToPosition(snappedConnector);
             }
         }
 
+        // TODO: This never triggers, figure out how to fix.
         public void _OnAreaExit(Area2D area2D) {
             GD.Print(Name + " has been exited by " + area2D.Name);
+            if (snappedConnector != null && area2D is ConnectorArea2D connectorArea2D) {
+                if (connectorArea2D.GetPath() == snappedConnector.GetPath()) {
+                    snappedConnector = null;
+                    GetParent<Block>().snapPosition = null;
+                }
+            }
+        }
+        
+        private Vector2 snapToPosition(ConnectorArea2D connectorArea2D) {
+            // TODO: Make this correct.
+            return connectorArea2D.GlobalPosition;
         }
     }
 
-    // Called when the node enters the scene tree for the first time.
     public override void _Ready() {
         AddChild(new SelectableArea2D());
-        AddChild(new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, new Vector2(0, -40)));
-        AddChild(new ConnectorArea2D(ConnectorArea2D.ConnectorType.OUTPUT, new Vector2(0, 40)));
+        inputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, new Vector2(0, -40));
+        AddChild(inputConnector);
+        outputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.OUTPUT, new Vector2(0, 40));
+        AddChild(outputConnector);
     }
 }

@@ -12,3 +12,4 @@ and interacting with the system, it becomes obvious what is meant by our arithme
  - Puzzle pieces can be connected together
  - The programs can run and be "measured"
  - Addition, Multiplication and Exponentiation all work
+ - Use NUnit for some tests
