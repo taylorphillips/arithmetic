@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Godot;
 using Object = Godot.Object;
 
@@ -7,7 +8,7 @@ using Object = Godot.Object;
 /// can then be assembled together into programs, and the programs can be executed
 /// in the form of a measuring or counting.
 /// </summary>
-public class Block : Node2D
+public abstract class Block : Node2D
 {
     public class SelectableArea2D : Area2D
     {
@@ -27,8 +28,6 @@ public class Block : Node2D
             collisionPolygon2D.Polygon = poly.Polygon;
             AddChild(poly);
             AddChild(collisionPolygon2D);
-            Connect("mouse_entered", this, "_OnMouseEnter");
-            Connect("mouse_exited", this, "_OnMouseExit");
         }
 
         public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
@@ -80,22 +79,21 @@ public class Block : Node2D
         }
     }
 
-    // TODO: This should be a list of inputConnectors
-    private ConnectorArea2D inputConnector;
-    private ConnectorArea2D outputConnector;
+    public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
+    public ConnectorArea2D outputConnector;
 
-    private ConnectorArea2D connectedConnector;
+    protected bool selected = false;
+    protected ConnectorArea2D snapFrom;
+    protected ConnectorArea2D snapTo;
 
-    private bool selected = false;
-    private ConnectorArea2D snapFrom;
-    private ConnectorArea2D snapTo;
 
     public override void _Ready() {
         AddChild(new SelectableArea2D());
-        
-        inputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, new Vector2(0, 40));
+
+        ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, new Vector2(0, 40));
+        inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
-        
+
         outputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.OUTPUT, new Vector2(0, -40));
         AddChild(outputConnector);
     }
@@ -112,15 +110,16 @@ public class Block : Node2D
                     transform.origin = getSnapPosition().Value;
                 }
             }
+
             Transform = transform;
         }
     }
 
     private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
         if (from.connectorType == ConnectorArea2D.ConnectorType.INPUT) {
-            return to.GlobalPosition + new Vector2(0, -40);
-        } else {
             return to.GlobalPosition + new Vector2(0, 40);
+        } else {
+            return to.GlobalPosition + new Vector2(0, -40);
         }
     }
 

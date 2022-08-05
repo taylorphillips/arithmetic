@@ -22,7 +22,7 @@ public class MultiBlock : Node2D
     public MultiBlock(Block block) {
         blocks.Add(block);
     }
-    
+
     // TODO: Make more robust and handle multiple connectors at once.
     public void ConnectBlock(Block block, ConnectorArea2D from, ConnectorArea2D to) {
         edges[from].Add(to);
@@ -33,32 +33,36 @@ public class MultiBlock : Node2D
     public void DisconnectBlock(Block block) {
         // TODO: Detect disjoint graph.
 
-        foreach (ConnectorArea2D connector in block.InputConnectors) {
+        foreach (ConnectorArea2D connector in block.inputConnectors) {
             List<ConnectorArea2D> connections = edges[connector];
             edges.Remove(connector);
             foreach (ConnectorArea2D connectorArea2D in connections) {
                 edges[connectorArea2D].Remove(connector);
             }
+
             blocks.Remove(block);
         }
     }
-    
+
     public void RunProgram() {
+        // TODO: Be able to choose between breadth first, depth first execution and simultaneous.
+        // TODO: Be able to fast forward programs.
+
         // Blocks without inputs are seeds of executions
         List<Block> seeds = new List<Block>();
         foreach (Block block in seeds) {
             // TODO: These Types should probably be a subclass somehow.
-            switch (block.Type) {
+            switch (block.GetClass()) {
                 case "EMPTY":
                     return;
                 case "SUCCESSOR":
-                    // Validate it has input.
-                    // Insert a ball.
-                    // Remove the successor block.
+                // Validate it has input.
+                // Insert a ball.
+                // Remove the successor block.
                 case "ADDITION":
-                    // Validate it has inputs.
-                    // Combine the inputs.
-                    // Remove the addition block.
+                // Validate it has inputs.
+                // Combine the inputs.
+                // Remove the addition block.
                 default:
                     throw new InvalidOperationException();
             }
