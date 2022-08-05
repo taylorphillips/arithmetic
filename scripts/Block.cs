@@ -2,6 +2,11 @@ using Godot;
 using Object = Godot.Object;
 
 
+/// <summary>
+/// Blocks are base puzzle pieces and can have 0+ inputs but only one output. Blocks
+/// can then be assembled together into programs, and the programs can be executed
+/// in the form of a measuring or counting.
+/// </summary>
 public class Block : Node2D
 {
     public class SelectableArea2D : Area2D
@@ -75,20 +80,22 @@ public class Block : Node2D
         }
     }
 
+    // TODO: This should be a list of inputConnectors
     private ConnectorArea2D inputConnector;
     private ConnectorArea2D outputConnector;
 
     private ConnectorArea2D connectedConnector;
-    private ConnectorArea2D snappedConnector;
 
+    private bool selected = false;
     private ConnectorArea2D snapFrom;
     private ConnectorArea2D snapTo;
-    private bool selected = false;
 
     public override void _Ready() {
         AddChild(new SelectableArea2D());
+        
         inputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, new Vector2(0, 40));
         AddChild(inputConnector);
+        
         outputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.OUTPUT, new Vector2(0, -40));
         AddChild(outputConnector);
     }
@@ -105,7 +112,6 @@ public class Block : Node2D
                     transform.origin = getSnapPosition().Value;
                 }
             }
-
             Transform = transform;
         }
     }
@@ -127,6 +133,7 @@ public class Block : Node2D
     }
 
     private void connectorCollision(ConnectorArea2D snapFrom, ConnectorArea2D snapTo) {
+        // TODO: This should handle snapping multiple connectors simultaneously.
         if (selected) {
             this.snapFrom = snapFrom;
             this.snapTo = snapTo;

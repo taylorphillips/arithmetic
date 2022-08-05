@@ -19,3 +19,15 @@ script = ExtResource( 1 )
 [node name="Node2D_2" type="Node2D" parent="."]
 position = Vector2( 652, 279 )
 script = ExtResource( 1 )
+
+[node name="Node2D_3" type="Node2D" parent="."]
+position = Vector2( 860, 456 )
+script = ExtResource( 1 )
+
+[node name="Node2D_4" type="Node2D" parent="."]
+position = Vector2( 93, 63 )
+script = ExtResource( 1 )
+
+[node name="Node2D_5" type="Node2D" parent="."]
+position = Vector2( 911, 125 )
+script = ExtResource( 1 )
