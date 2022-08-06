@@ -23,6 +23,8 @@ public class AdditionBlock : Block
     }
 
     public void Run() {
+        base.Run();
+
         // Add input1
         // Add input2
         // Remove addition block, this becomes a numena block.

@@ -17,6 +17,8 @@ Turtle moving around.
  - The programs can run and be "measured"
  - Addition, Multiplication and Exponentiation all work
  - Use NUnit for some tests
+ - Add shader for select MultiBlock
+ - Add shader for blocks as they execute
 
 ### Long-Term Goals
  - Implement Collatz conjecture.

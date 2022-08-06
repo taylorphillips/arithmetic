@@ -68,16 +68,18 @@ public abstract class Block : Node2D
             Connect("area_entered", this, "_OnAreaEnter");
         }
 
-        public bool ConnectsTo(ConnectorArea2D connector) {
+        public bool CanConnectTo(ConnectorArea2D connector) {
             return connector.connectorType != connectorType;
         }
 
         public void _OnAreaEnter(Area2D area2D) {
-            if (area2D is ConnectorArea2D connectorArea2D && ConnectsTo(connectorArea2D)) {
+            if (area2D is ConnectorArea2D connectorArea2D && CanConnectTo(connectorArea2D)) {
                 GetParent<Block>().connectorCollision(this, connectorArea2D);
             }
         }
     }
+
+    public List<Unit> units = new List<Unit>();
 
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
@@ -113,6 +115,26 @@ public abstract class Block : Node2D
 
             Transform = transform;
         }
+    }
+
+
+    public void PushButton() {
+        Unit unit = new Unit();
+        AddChild(unit);
+    }
+
+
+
+    public virtual void Run() {
+        if (AreInputsSatisfied()) return;
+    }
+
+    public bool AreInputsSatisfied() {
+        foreach (ConnectorArea2D connectorArea2D in inputConnectors) {
+            if (GetParent<MultiBlock>().GetConnector(connectorArea2D) == null) return false;
+        }
+
+        return true;
     }
 
     private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {

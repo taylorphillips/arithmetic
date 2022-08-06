@@ -1,6 +1,8 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics.Eventing.Reader;
+using System.Linq;
 using System.Net.Sockets;
 using Godot;
 using static Block;
@@ -17,7 +19,7 @@ using static Block;
 public class MultiBlock : Node2D
 {
     private List<Block> blocks = new List<Block>();
-    private Dictionary<ConnectorArea2D, List<ConnectorArea2D>> edges;
+    private Dictionary<ConnectorArea2D, ConnectorArea2D> edges;
 
     public MultiBlock(Block block) {
         blocks.Add(block);
@@ -25,8 +27,8 @@ public class MultiBlock : Node2D
 
     // TODO: Make more robust and handle multiple connectors at once.
     public void ConnectBlock(Block block, ConnectorArea2D from, ConnectorArea2D to) {
-        edges[from].Add(to);
-        edges[to].Add(from);
+        edges[from] = to;
+        edges[to] = from;
         blocks.Add(block);
     }
 
@@ -34,38 +36,47 @@ public class MultiBlock : Node2D
         // TODO: Detect disjoint graph.
 
         foreach (ConnectorArea2D connector in block.inputConnectors) {
-            List<ConnectorArea2D> connections = edges[connector];
-            edges.Remove(connector);
-            foreach (ConnectorArea2D connectorArea2D in connections) {
-                edges[connectorArea2D].Remove(connector);
-            }
-
+            edges[edges[connector]] = null;
+            edges[connector] = null;
             blocks.Remove(block);
         }
     }
 
+    public ConnectorArea2D GetConnector(ConnectorArea2D connectorArea2D) {
+        return edges[connectorArea2D];
+    }
+
+    public Block GetOutputBlock(Block block) {
+        if (edges[block.outputConnector] != null) {
+            return null;
+        }
+
+        return edges[block.outputConnector].GetParent<Block>();
+    }
+
     public void RunProgram() {
+        // TODO: Store program so that it can be restored after being destroyed (computed).
         // TODO: Be able to choose between breadth first, depth first execution and simultaneous.
         // TODO: Be able to fast forward programs.
 
-        // Blocks without inputs are seeds of executions
-        List<Block> seeds = new List<Block>();
-        foreach (Block block in seeds) {
-            // TODO: These Types should probably be a subclass somehow.
-            switch (block.GetClass()) {
-                case "EMPTY":
-                    return;
-                case "SUCCESSOR":
-                // Validate it has input.
-                // Insert a ball.
-                // Remove the successor block.
-                case "ADDITION":
-                // Validate it has inputs.
-                // Combine the inputs.
-                // Remove the addition block.
-                default:
-                    throw new InvalidOperationException();
+        // Unit blocks are the seeds of program execution.
+        IEnumerable<UnitBlock> unitBlocks = blocks.Select(block => {
+            if (block is UnitBlock unitBlock) {
+                return unitBlock;
             }
+
+            return null;
+        });
+
+        foreach (UnitBlock unitBlock in unitBlocks) {
+            unitBlock.Run();
         }
     }
+
+    public void SaveProgram() { }
+
+    /// <summary>
+    /// Set's this MultiBlock 
+    /// </summary>
+    public void LoadProgram() { }
 }
