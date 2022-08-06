@@ -21,6 +21,8 @@ public class MultiBlock : Node2D
     private List<Block> blocks = new List<Block>();
     private Dictionary<ConnectorArea2D, ConnectorArea2D> edges;
 
+    public MultiBlock() {
+    }
     public MultiBlock(Block block) {
         blocks.Add(block);
     }

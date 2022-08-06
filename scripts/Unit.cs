@@ -14,6 +14,6 @@
         }
 
         public override void _Draw() {
-            DrawCircle(GlobalPosition, Radius, Colors.Blue);
+            DrawCircle(new Vector2(0,0), Radius, Colors.Blue);
         }
     }
