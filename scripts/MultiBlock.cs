@@ -62,16 +62,16 @@ public class MultiBlock : Node2D
         // TODO: Be able to fast forward programs.
 
         // Unit blocks are the seeds of program execution.
-        IEnumerable<UnitBlock> unitBlocks = blocks.Select(block => {
-            if (block is UnitBlock unitBlock) {
-                return unitBlock;
+        IEnumerable<Block> seeds = blocks.Select(block => {
+            if (block.inputConnectors.Count == 0) {
+                return block;
             }
 
             return null;
         });
 
-        foreach (UnitBlock unitBlock in unitBlocks) {
-            unitBlock.Run();
+        foreach (Block block in seeds) {
+            block.Run();
         }
     }
 

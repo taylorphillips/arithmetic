@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using Godot;
 
+// TODO: Construct the Game scene with code and make the root multiblock at 0,0 but move the position
+// of the RootBlock to where it should be. Then position all children as ??
 public class ControlPanel : GridContainer
 {
     public class Button : Godot.Button
@@ -26,6 +28,26 @@ public class ControlPanel : GridContainer
             AddChild(button);
         }
 
+        public override void _Draw() {
+            if (isDragging) {
+                // TODO: Would be ideal if this referenced the block's own drawing.
+                Rect2 rect2 = new Rect2(
+                    GetGlobalMousePosition() - new Vector2(20, 40),
+                    new Vector2(40, 40)
+                );
+                DrawRect(rect2, Colors.DarkGray, true);
+            }
+        }
+
+        public override void _Process(float delta) {
+            if (isSelected && RectGlobalPosition.DistanceTo(GetGlobalMousePosition()) > 100f) {
+                isDragging = true;
+                Update();
+            } else {
+                isDragging = false;
+            }
+        }
+
         public virtual void OnButtonDown() {
             isSelected = true;
         }
@@ -33,14 +55,7 @@ public class ControlPanel : GridContainer
         public virtual void OnButtonUp() {
             isSelected = false;
             isDragging = false;
-        }
-
-        public override void _Process(float delta) {
-            if (isSelected && RectGlobalPosition.DistanceTo(GetGlobalMousePosition()) > 100f) {
-                isDragging = true;
-            } else {
-                isDragging = false;
-            }
+            Update();
         }
     }
 
@@ -50,29 +65,26 @@ public class ControlPanel : GridContainer
 
         public SuccessorButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
 
+
         public override void OnButtonUp() {
             if (isDragging) {
-                SuccessorBlock successorBlock = new SuccessorBlock();
-                MultiBlock multiBlock = new MultiBlock(successorBlock);
-                multiBlock.GlobalPosition = GetGlobalMousePosition();
-                successorBlock.GlobalPosition = GetGlobalMousePosition();
-                //multiBlock.AddChild(successorBlock);
-
                 Node2D root = GetTree().Root.GetChild<Node2D>(0);
                 Block rootBlock = root.GetChild<Block>(0);
-                // TODO: Make the MultiBlock work.
-                root.AddChild(successorBlock);
-                isDragging = false;
+
+                SuccessorBlock successorBlock = new SuccessorBlock();
+                MultiBlock multiBlock = new MultiBlock(successorBlock);
+                multiBlock.GlobalPosition = rootBlock.GetLocalMousePosition();
+                multiBlock.AddChild(successorBlock);
+                rootBlock.AddContent(multiBlock);
             } else {
-                rng = new RandomNumberGenerator();
+                Node2D root = GetTree().Root.GetChild<Node2D>(0);
+                Block rootBlock = root.GetChild<Block>(0);
                 for (int i = 0; i < 1; i++) {
-                    Unit unit = new Unit();
-                    unit.GlobalPosition = new Vector2(rng.RandfRange(-20, 20), rng.RandfRange(-20, 20));
-                    Node2D root = GetTree().Root.GetChild<Node2D>(0);
-                    Block rootBlock = root.GetChild<Block>(0);
-                    rootBlock.AddChild(unit);
+                    rootBlock.PushButton();
                 }
             }
+
+            base.OnButtonUp();
         }
     }
 
@@ -82,22 +94,20 @@ public class ControlPanel : GridContainer
 
         public override void OnButtonUp() {
             if (isDragging) {
-                // TODO: Make the MultiBlock work.
-                Block block = new Block();
-                block.GlobalPosition = GetGlobalMousePosition();
                 Node2D root = GetTree().Root.GetChild<Node2D>(0);
-                root.AddChild(block);
-                isDragging = false;
+                Block rootBlock = root.GetChild<Block>(0);
+                Block block = new Block();
+                MultiBlock multiBlock = new MultiBlock(block);
+                multiBlock.GlobalPosition = rootBlock.GetLocalMousePosition();
+                multiBlock.AddChild(block);
+                rootBlock.AddContent(multiBlock);
             } else {
                 Node2D root = GetTree().Root.GetChild<Node2D>(0);
                 Block rootBlock = root.GetChild<Block>(0);
-
-                foreach (Node child in rootBlock.GetChildren()) {
-                    if (child is Unit) {
-                        rootBlock.RemoveChild(child);
-                    }
-                }
+                rootBlock.ClearContent();
             }
+
+            base.OnButtonUp();
         }
     }
 

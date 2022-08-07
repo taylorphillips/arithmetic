@@ -108,10 +108,7 @@ public class Block : Node2D
     }
 
 
-    // TODO: Should units and blocks be combined into a common type?
-    public List<Unit> units = new List<Unit>();
-    public List<MultiBlock> contents = new List<MultiBlock>();
-
+    public Node2D contentNode;
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
 
@@ -119,8 +116,16 @@ public class Block : Node2D
     protected ConnectorArea2D snapFrom;
     protected ConnectorArea2D snapTo;
 
+    private RandomNumberGenerator rng;
+
+    public Block() {
+        rng = new RandomNumberGenerator();
+    }
 
     public override void _Ready() {
+        contentNode = new Node2D();
+        AddChild(contentNode);
+
         AddChild(new SelectableArea2D());
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
@@ -128,47 +133,35 @@ public class Block : Node2D
 
     public override void _PhysicsProcess(float delta) {
         if (selected) {
-            Transform2D transform = GlobalTransform;
-            transform.origin = GetGlobalMousePosition();
+            MultiBlock parent = GetParent<MultiBlock>();
             if (getSnapPosition().HasValue) {
-                if (GlobalPosition.DistanceTo(GetGlobalMousePosition()) > 40f) {
+                if (parent.GlobalPosition.DistanceTo(GetGlobalMousePosition()) > 40f) {
                     snapFrom = null;
                     snapTo = null;
                 } else {
-                    transform.origin = getSnapPosition().Value;
+                    parent.GlobalPosition = getSnapPosition().Value;
                 }
+            } else {
+                parent.GlobalPosition = GetGlobalMousePosition();
             }
-
-            Transform = transform;
         }
     }
 
-
     public void PushButton() {
         Unit unit = new Unit();
+        unit.GlobalPosition = new Vector2(rng.RandfRange(-20, 20), rng.RandfRange(-20, 20));
         AddChild(unit);
     }
 
 
-    public virtual void Run() {
-        if (AreInputsSatisfied()) {
-            return;
-        }
-    }
-
-    public bool AreInputsSatisfied() {
-        foreach (ConnectorArea2D connectorArea2D in inputConnectors) {
-            if (GetParent<MultiBlock>().GetConnector(connectorArea2D) == null) {
-                return false;
-            }
-        }
-
-        return true;
-    }
-
     public void AddContent(MultiBlock block) {
-        contents.Add(block);
         AddChild(block);
+    }
+
+    public void ClearContent() {
+        foreach (Node child in contentNode.GetChildren()) {
+            contentNode.RemoveChild(child);
+        }
     }
 
     private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
@@ -209,5 +202,21 @@ public class Block : Node2D
             snapFrom = null;
             snapTo = null;
         }
+    }
+
+    public virtual void Run() {
+        if (AreInputsSatisfied()) {
+            return;
+        }
+    }
+
+    public bool AreInputsSatisfied() {
+        foreach (ConnectorArea2D connectorArea2D in inputConnectors) {
+            if (GetParent<MultiBlock>().GetConnector(connectorArea2D) == null) {
+                return false;
+            }
+        }
+
+        return true;
     }
 }

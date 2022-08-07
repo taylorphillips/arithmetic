@@ -12,11 +12,11 @@ public class AdditionBlock : Block
         ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(-40, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
-        
+
         inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(40, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
-        
+
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
     }
