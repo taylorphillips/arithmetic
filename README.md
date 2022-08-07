@@ -24,4 +24,4 @@ Turtle moving around.
  - Implement Collatz conjecture.
  - Implement Universal Turing Machine.
  - Implement this game inside the UTM.
- - Implement x86.
+ - Implement x86. 

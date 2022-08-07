@@ -14,10 +14,12 @@ public abstract class Block : Node2D
     {
         private Polygon2D poly;
 
+        public SelectableArea2D() { }
+
         public override void _Ready() {
             Name = "SelectableArea2D";
             poly = new Polygon2D();
-            poly.Color = Colors.Red;
+            poly.Color = Colors.Gray;
             poly.Polygon = new Vector2[] {
                 new Vector2(-40, -40),
                 new Vector2(40, -40),
@@ -26,8 +28,16 @@ public abstract class Block : Node2D
             };
             CollisionPolygon2D collisionPolygon2D = new CollisionPolygon2D();
             collisionPolygon2D.Polygon = poly.Polygon;
+            collisionPolygon2D.BuildMode = CollisionPolygon2D.BuildModeEnum.Solids;
             AddChild(poly);
             AddChild(collisionPolygon2D);
+            
+            // Add static body to contain the units. Could be elsewhere?
+            StaticBody2D staticBody2D = new StaticBody2D();
+            collisionPolygon2D = (CollisionPolygon2D) collisionPolygon2D.Duplicate();
+            collisionPolygon2D.BuildMode = CollisionPolygon2D.BuildModeEnum.Segments;
+            staticBody2D.AddChild(collisionPolygon2D.Duplicate());
+            AddChild(staticBody2D);
         }
 
         public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
@@ -51,6 +61,7 @@ public abstract class Block : Node2D
 
         public readonly Vector2 initPosition;
         public readonly ConnectorType connectorType;
+        public readonly float Radius = 20;
 
         public ConnectorArea2D(ConnectorType connectorType, Vector2 initPosition) {
             this.connectorType = connectorType;
@@ -60,11 +71,12 @@ public abstract class Block : Node2D
         public override void _Ready() {
             Name = "ConnectorArea2D-" + connectorType;
             CircleShape2D circle = new CircleShape2D();
-            circle.Radius = 20;
+            circle.Radius = Radius;
             CollisionShape2D collisionShape2D = new CollisionShape2D();
             collisionShape2D.Shape = circle;
             Position = initPosition;
             AddChild(collisionShape2D);
+            ZIndex = -1;
             Connect("area_entered", this, "_OnAreaEnter");
         }
 
@@ -77,9 +89,16 @@ public abstract class Block : Node2D
                 GetParent<Block>().connectorCollision(this, connectorArea2D);
             }
         }
+
+        public override void _Draw() {
+            DrawCircle(Vector2.Zero, Radius, Colors.PaleGoldenrod);
+        }
     }
 
+
+    // TODO: Should units and blocks be combined into a common type?
     public List<Unit> units = new List<Unit>();
+    public List<MultiBlock> contents = new List<MultiBlock>();
 
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
@@ -124,14 +143,17 @@ public abstract class Block : Node2D
     }
 
 
-
     public virtual void Run() {
-        if (AreInputsSatisfied()) return;
+        if (AreInputsSatisfied()) {
+            return;
+        }
     }
 
     public bool AreInputsSatisfied() {
         foreach (ConnectorArea2D connectorArea2D in inputConnectors) {
-            if (GetParent<MultiBlock>().GetConnector(connectorArea2D) == null) return false;
+            if (GetParent<MultiBlock>().GetConnector(connectorArea2D) == null) {
+                return false;
+            }
         }
 
         return true;
@@ -139,9 +161,9 @@ public abstract class Block : Node2D
 
     private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
         if (from.connectorType == ConnectorArea2D.ConnectorType.INPUT) {
-            return to.GlobalPosition + new Vector2(0, 40);
-        } else {
             return to.GlobalPosition + new Vector2(0, -40);
+        } else {
+            return to.GlobalPosition + new Vector2(0, 40);
         }
     }
 
