@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Godot;
+using static Block.ConnectorArea2D;
 using Object = Godot.Object;
 
 
@@ -8,7 +9,7 @@ using Object = Godot.Object;
 /// can then be assembled together into programs, and the programs can be executed
 /// in the form of a measuring or counting.
 /// </summary>
-public abstract class Block : Node2D
+public class Block : Node2D
 {
     public class SelectableArea2D : Area2D
     {
@@ -26,12 +27,23 @@ public abstract class Block : Node2D
                 new Vector2(40, 40),
                 new Vector2(-40, 40),
             };
+
+            Polygon2D poly2 = new Polygon2D();
+            poly2.Color = Colors.Black;
+            poly2.Polygon = new Vector2[] {
+                new Vector2(-42, -42),
+                new Vector2(42, -42),
+                new Vector2(42, 42),
+                new Vector2(-42, 42),
+            };
+            AddChild(poly2);
+            AddChild(poly);
+
             CollisionPolygon2D collisionPolygon2D = new CollisionPolygon2D();
             collisionPolygon2D.Polygon = poly.Polygon;
             collisionPolygon2D.BuildMode = CollisionPolygon2D.BuildModeEnum.Solids;
-            AddChild(poly);
             AddChild(collisionPolygon2D);
-            
+
             // Add static body to contain the units. Could be elsewhere?
             StaticBody2D staticBody2D = new StaticBody2D();
             collisionPolygon2D = (CollisionPolygon2D) collisionPolygon2D.Duplicate();
@@ -110,12 +122,7 @@ public abstract class Block : Node2D
 
     public override void _Ready() {
         AddChild(new SelectableArea2D());
-
-        ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, new Vector2(0, 40));
-        inputConnectors.Add(inputConnector);
-        AddChild(inputConnector);
-
-        outputConnector = new ConnectorArea2D(ConnectorArea2D.ConnectorType.OUTPUT, new Vector2(0, -40));
+        outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
     }
 
@@ -159,11 +166,16 @@ public abstract class Block : Node2D
         return true;
     }
 
+    public void AddContent(MultiBlock block) {
+        contents.Add(block);
+        AddChild(block);
+    }
+
     private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
-        if (from.connectorType == ConnectorArea2D.ConnectorType.INPUT) {
-            return to.GlobalPosition + new Vector2(0, -40);
-        } else {
+        if (from.connectorType == ConnectorType.INPUT) {
             return to.GlobalPosition + new Vector2(0, 40);
+        } else {
+            return to.GlobalPosition + new Vector2(0, -40);
         }
     }
 

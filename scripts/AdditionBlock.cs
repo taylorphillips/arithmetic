@@ -9,14 +9,13 @@ public class AdditionBlock : Block
     public override void _Ready() {
         AddChild(new SelectableArea2D());
 
-        ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(0, -40));
+        ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(-40, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
         
-        // TODO: Second input for addition.
-        // inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(0, -40));
-        // inputConnectors.Add(inputConnector);
-        // AddChild(inputConnector);
+        inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(40, -40));
+        inputConnectors.Add(inputConnector);
+        AddChild(inputConnector);
         
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);

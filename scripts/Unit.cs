@@ -17,6 +17,5 @@ public class Unit : RigidBody2D
 
     public override void _Draw() {
         DrawCircle(new Vector2(0, 0), Radius, Colors.Blue);
-        
     }
 }

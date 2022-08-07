@@ -20,8 +20,8 @@ public class SuccessorBlock : Block
 
     public override void Run() {
         base.Run();
-        
-        this.PushButton();
+
+        PushButton();
         // Empty above Block into this Block.
         // Push the button and add a ball.
         // Change this to be a UnitBlock

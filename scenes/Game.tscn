@@ -6,7 +6,7 @@
 [node name="Node2D" type="Node2D"]
 
 [node name="RootBlock" type="Node2D" parent="."]
-position = Vector2( 394, 312 )
+position = Vector2( 400, 300 )
 scale = Vector2( 7, 7 )
 script = ExtResource( 1 )
 
