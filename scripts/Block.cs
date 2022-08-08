@@ -13,13 +13,11 @@ public class Block : Node2D
 {
     public class SelectableArea2D : Area2D
     {
-        private Polygon2D poly;
-
         public SelectableArea2D() { }
 
         public override void _Ready() {
             Name = "SelectableArea2D";
-            poly = new Polygon2D();
+            Polygon2D poly = new Polygon2D();
             poly.Color = Colors.Gray;
             poly.Polygon = new Vector2[] {
                 new Vector2(-40, -40),
@@ -81,6 +79,7 @@ public class Block : Node2D
         }
 
         public override void _Ready() {
+            ZIndex = -1;
             Name = "ConnectorArea2D-" + connectorType;
             CircleShape2D circle = new CircleShape2D();
             circle.Radius = Radius;
@@ -88,7 +87,6 @@ public class Block : Node2D
             collisionShape2D.Shape = circle;
             Position = initPosition;
             AddChild(collisionShape2D);
-            ZIndex = -1;
             Connect("area_entered", this, "_OnAreaEnter");
         }
 
@@ -107,7 +105,6 @@ public class Block : Node2D
         }
     }
 
-
     public Node2D contentNode;
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
@@ -124,11 +121,12 @@ public class Block : Node2D
 
     public override void _Ready() {
         contentNode = new Node2D();
+        contentNode.ZIndex = 10;
         AddChild(contentNode);
 
-        AddChild(new SelectableArea2D());
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
+        AddChild(new SelectableArea2D());
     }
 
     public override void _PhysicsProcess(float delta) {
@@ -150,12 +148,12 @@ public class Block : Node2D
     public void PushButton() {
         Unit unit = new Unit();
         unit.GlobalPosition = new Vector2(rng.RandfRange(-20, 20), rng.RandfRange(-20, 20));
-        AddChild(unit);
+        contentNode.AddChild(unit);
     }
 
 
     public void AddContent(MultiBlock block) {
-        AddChild(block);
+        contentNode.AddChild(block);
     }
 
     public void ClearContent() {
@@ -166,7 +164,7 @@ public class Block : Node2D
 
     private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
         if (from.connectorType == ConnectorType.INPUT) {
-            return to.GlobalPosition + new Vector2(0, 40);
+            return to.GlobalPosition + new Vector2(0, from.Radius * 2);
         } else {
             return to.GlobalPosition + new Vector2(0, -40);
         }

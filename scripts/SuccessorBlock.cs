@@ -8,14 +8,20 @@ public class SuccessorBlock : Block
 {
     public override void _Ready() {
         // TODO: Style this as a successor.
-        AddChild(new SelectableArea2D());
+        
+        contentNode = new Node2D();
+        contentNode.ZIndex = ZIndex + 10;
+        AddChild(contentNode);
 
         ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(0, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
-
+        
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
+        
+        AddChild(new SelectableArea2D());
+
     }
 
     public override void Run() {

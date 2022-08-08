@@ -6,7 +6,7 @@ public class Unit : RigidBody2D
 
     public override void _Ready() {
         CanSleep = false;
-
+        ZIndex = 1;
         CircleShape2D circleShape2D = new CircleShape2D();
         circleShape2D.Radius = Radius;
 

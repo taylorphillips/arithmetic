@@ -7,8 +7,10 @@ using static Block.ConnectorArea2D;
 public class AdditionBlock : Block
 {
     public override void _Ready() {
-        AddChild(new SelectableArea2D());
-
+        contentNode = new Node2D();
+        contentNode.ZIndex = ZIndex + 10;
+        AddChild(contentNode);
+        
         ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(-40, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
@@ -19,6 +21,9 @@ public class AdditionBlock : Block
 
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
+        
+        AddChild(new SelectableArea2D());
+
     }
 
     public void Run() {

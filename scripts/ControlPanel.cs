@@ -70,9 +70,10 @@ public class ControlPanel : GridContainer
             if (isDragging) {
                 Node2D root = GetTree().Root.GetChild<Node2D>(0);
                 Block rootBlock = root.GetChild<Block>(0);
-
                 SuccessorBlock successorBlock = new SuccessorBlock();
                 MultiBlock multiBlock = new MultiBlock(successorBlock);
+                // Children get downscaled 10x?
+                multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
                 multiBlock.GlobalPosition = rootBlock.GetLocalMousePosition();
                 multiBlock.AddChild(successorBlock);
                 rootBlock.AddContent(multiBlock);
@@ -98,6 +99,8 @@ public class ControlPanel : GridContainer
                 Block rootBlock = root.GetChild<Block>(0);
                 Block block = new Block();
                 MultiBlock multiBlock = new MultiBlock(block);
+                // Children get downscaled 10x?
+                multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
                 multiBlock.GlobalPosition = rootBlock.GetLocalMousePosition();
                 multiBlock.AddChild(block);
                 rootBlock.AddContent(multiBlock);
