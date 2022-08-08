@@ -11,15 +11,14 @@ Cells producing energy.
 Turtle moving around.
 
 ### TODO
-
-- Make a control panel, with the two buttons: "The Button" and Empty
-- "The Button" becomes draggable into a puzzle piece
-- Puzzle pieces can be connected together
 - The programs can run and be "measured"
 - Addition, Multiplication and Exponentiation all work
 - Use NUnit for some tests
 - Add shader for select MultiBlock
 - Add shader for blocks as they execute
+
+### Minor TODO
+- Only one block should be selectable at a time (right now if they overlap you can grab two with one click).
 
 ### Long-Term Goals
 

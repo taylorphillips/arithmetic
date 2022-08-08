@@ -109,7 +109,9 @@ public class Block : Node2D
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
 
+    public bool IsSelectable = true; 
     protected bool selected = false;
+    
     protected ConnectorArea2D snapFrom;
     protected ConnectorArea2D snapTo;
 
@@ -187,7 +189,11 @@ public class Block : Node2D
     }
 
     private void select() {
-        selected = true;
+        if (IsSelectable) {
+            selected = true;
+        } else {
+            GD.Print("NB: IsSelectable = false");
+        }
     }
 
     private void deselect() {
@@ -204,6 +210,7 @@ public class Block : Node2D
 
     public virtual void Run() {
         if (AreInputsSatisfied()) {
+            // How to handle inputs vs internals?
             return;
         }
     }

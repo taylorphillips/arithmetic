@@ -18,13 +18,14 @@ using static Block;
 /// </summary>
 public class MultiBlock : Node2D
 {
-    private List<Block> blocks = new List<Block>();
-    private Dictionary<ConnectorArea2D, ConnectorArea2D> edges;
+    protected List<Block> blocks = new List<Block>();
+    protected Dictionary<ConnectorArea2D, ConnectorArea2D> edges;
 
     public MultiBlock() { }
 
     public MultiBlock(Block block) {
         blocks.Add(block);
+        AddChild(block);
     }
 
     // TODO: Make more robust and handle multiple connectors at once.

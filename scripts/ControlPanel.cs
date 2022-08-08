@@ -12,8 +12,10 @@ public class ControlPanel : GridContainer
         protected bool isSelected = false;
         protected bool isDragging = false;
 
+        
         private readonly string name;
         private readonly MultiBlock multiBlock;
+        protected  RootMultiBlock root;
 
         public Button(string name, MultiBlock multiBlock) {
             this.name = name;
@@ -21,6 +23,7 @@ public class ControlPanel : GridContainer
         }
 
         public override void _Ready() {
+            root = GetParent<ControlPanel>().root;
             Godot.Button button = new Godot.Button();
             button.Text = name;
             button.Connect("button_down", this, "OnButtonDown");
@@ -68,20 +71,15 @@ public class ControlPanel : GridContainer
 
         public override void OnButtonUp() {
             if (isDragging) {
-                Node2D root = GetTree().Root.GetChild<Node2D>(0);
-                Block rootBlock = root.GetChild<Block>(0);
                 SuccessorBlock successorBlock = new SuccessorBlock();
                 MultiBlock multiBlock = new MultiBlock(successorBlock);
                 // Children get downscaled 10x?
                 multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
-                multiBlock.GlobalPosition = rootBlock.GetLocalMousePosition();
-                multiBlock.AddChild(successorBlock);
-                rootBlock.AddContent(multiBlock);
+                multiBlock.GlobalPosition = root.Block.GetLocalMousePosition();
+                root.Block.AddContent(multiBlock);
             } else {
-                Node2D root = GetTree().Root.GetChild<Node2D>(0);
-                Block rootBlock = root.GetChild<Block>(0);
                 for (int i = 0; i < 1; i++) {
-                    rootBlock.PushButton();
+                    root.Block.PushButton();
                 }
             }
 
@@ -95,35 +93,39 @@ public class ControlPanel : GridContainer
 
         public override void OnButtonUp() {
             if (isDragging) {
-                Node2D root = GetTree().Root.GetChild<Node2D>(0);
-                Block rootBlock = root.GetChild<Block>(0);
                 Block block = new Block();
                 MultiBlock multiBlock = new MultiBlock(block);
                 // Children get downscaled 10x?
                 multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
-                multiBlock.GlobalPosition = rootBlock.GetLocalMousePosition();
-                multiBlock.AddChild(block);
-                rootBlock.AddContent(multiBlock);
+                multiBlock.GlobalPosition = root.GetLocalMousePosition();
+                root.Block.AddContent(multiBlock);
             } else {
-                Node2D root = GetTree().Root.GetChild<Node2D>(0);
-                Block rootBlock = root.GetChild<Block>(0);
-                rootBlock.ClearContent();
+                root.Block.ClearContent();
             }
 
             base.OnButtonUp();
         }
     }
+    
+    public class RunButton : Button
+    {
+        public RunButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
 
-    // This is the block that represents the main window.
-    private MultiBlock rootBlock = new MultiBlock();
+        public override void OnButtonDown() {
+        }
 
-
-    public override void _Ready() {
-        AddChild(new EmptyButton("Empty", new MultiBlock()));
-        AddChild(new SuccessorButton("Successor", new MultiBlock()));
+        public override void OnButtonUp() {
+            root.RunProgram();
+        }
     }
 
-    public void AddButton(Button button) {
-        AddChild(button);
+    // This is the block that represents the main window.
+    private RootMultiBlock root = new RootMultiBlock();
+
+    public override void _Ready() {
+        this.root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
+        AddChild(new EmptyButton("Empty", new MultiBlock()));
+        AddChild(new SuccessorButton("Successor", new MultiBlock()));
+        AddChild(new RunButton("Run", new MultiBlock()));
     }
 }

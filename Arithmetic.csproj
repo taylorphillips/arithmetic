@@ -3,9 +3,9 @@
         <TargetFramework>net472</TargetFramework>
     </PropertyGroup>
     <ItemGroup>
-        <Content Include="README.md"/>
+        <Content Include="README.md" />
     </ItemGroup>
     <ItemGroup>
-        <Folder Include="scenes"/>
+        <Folder Include="scenes" />
     </ItemGroup>
 </Project>
