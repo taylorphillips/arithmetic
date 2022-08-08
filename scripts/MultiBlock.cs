@@ -19,7 +19,7 @@ using static Block;
 public class MultiBlock : Node2D
 {
     protected List<Block> blocks = new List<Block>();
-    protected Dictionary<ConnectorArea2D, ConnectorArea2D> edges;
+    protected Dictionary<ConnectorArea2D, ConnectorArea2D> edges = new Dictionary<ConnectorArea2D, ConnectorArea2D>();
 
     public MultiBlock() { }
 
@@ -28,11 +28,27 @@ public class MultiBlock : Node2D
         AddChild(block);
     }
 
-    // TODO: Make more robust and handle multiple connectors at once.
-    public void ConnectBlock(Block block, ConnectorArea2D from, ConnectorArea2D to) {
+    // 
+    /// <summary>
+    /// Transferings the fromBlock to the toBlock (this).
+    /// TODO: Make more robust and handle multiple connectors at once. 
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="to"></param>
+    public void AddConnection(ConnectorArea2D from, ConnectorArea2D to) {
+        Block fromBlock = from.GetParent<Block>();
+        if (!blocks.Contains(fromBlock)) {
+            blocks.Add(fromBlock);
+        }
         edges[from] = to;
         edges[to] = from;
-        blocks.Add(block);
+        
+        // TODO: Improve this logic.
+        MultiBlock fromMultiBlock = fromBlock.GetParent<MultiBlock>();
+        fromMultiBlock.RemoveChild(fromBlock);
+        fromMultiBlock.QueueFree();
+        AddChild(fromBlock);
+        fromBlock.Position = fromBlock.Position + new Vector2(0, 80);
     }
 
     public void DisconnectBlock(Block block) {
@@ -46,7 +62,11 @@ public class MultiBlock : Node2D
     }
 
     public ConnectorArea2D GetConnector(ConnectorArea2D connectorArea2D) {
-        return edges[connectorArea2D];
+        if (edges.ContainsKey(connectorArea2D)) {
+            return edges[connectorArea2D];
+        } else {
+            return null;
+        }
     }
 
     public Block GetOutputBlock(Block block) {
@@ -63,14 +83,7 @@ public class MultiBlock : Node2D
         // TODO: Be able to fast forward programs.
 
         // Unit blocks are the seeds of program execution.
-        IEnumerable<Block> seeds = blocks.Select(block => {
-            if (block.inputConnectors.Count == 0) {
-                return block;
-            }
-
-            return null;
-        });
-
+        IEnumerable<Block> seeds = blocks.Where(block => block.inputConnectors.Count == 0); 
         foreach (Block block in seeds) {
             block.Run();
         }

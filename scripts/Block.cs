@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using Godot;
 using static Block.ConnectorArea2D;
 using Object = Godot.Object;
@@ -109,9 +110,9 @@ public class Block : Node2D
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
 
-    public bool IsSelectable = true; 
+    public bool IsSelectable = true;
     protected bool selected = false;
-    
+
     protected ConnectorArea2D snapFrom;
     protected ConnectorArea2D snapTo;
 
@@ -189,29 +190,50 @@ public class Block : Node2D
     }
 
     private void select() {
-        if (IsSelectable) {
-            selected = true;
-        } else {
-            GD.Print("NB: IsSelectable = false");
+        if (!IsSelectable) {
+            return;
         }
+
+        selected = true;
     }
 
     private void deselect() {
+        if (!IsSelectable) {
+            return;
+        }
+
         selected = false;
 
-        // Confirm the snap
-        if (snapFrom != null && snapFrom != null) {
-            // TODO: Add to parent 2D as group
-            // TODO: Store the graph somewhere.
+        // Confirm the snap by transferring snapFrom to snapTo
+        if (snapFrom != null && snapTo != null) {
+            MultiBlock toMultiBlock = snapTo.GetParent<Block>().GetParent<MultiBlock>();
+            toMultiBlock.AddConnection(snapFrom, snapTo);
             snapFrom = null;
             snapTo = null;
         }
     }
 
     public virtual void Run() {
-        if (AreInputsSatisfied()) {
-            // How to handle inputs vs internals?
-            return;
+        if (inputConnectors.Count == 0) {
+            // If no inputs, run all the seeds in contents.
+            // A program will only run to completion if streams of
+            // computation have united which is like saying
+
+            
+            // Umm something else should be responsible for execution decisions.
+            MultiBlock parent = GetParent<MultiBlock>();
+            ConnectorArea2D connectorArea2D = parent.GetConnector(outputConnector);
+            if (connectorArea2D != null) { 
+                Block nextBlock = connectorArea2D.GetParent<Block>();
+                nextBlock.Run();
+            }
+            foreach (Node node in contentNode.GetChildren()) {
+                if (node is MultiBlock multiBlock) {
+                    multiBlock.RunProgram();
+                }
+            }
+        } else if (AreInputsSatisfied()) {
+            // If there are inputs, require them to be wired up.
         }
     }
 
