@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Godot;
@@ -213,27 +214,59 @@ public class Block : Node2D
         }
     }
 
-    public virtual void Run() {
+    public enum ExitCode
+    {
+        SUCCESS = 0,
+        FAILURE = 1,
+    }
+
+    public virtual ExitCode Run() {
         if (inputConnectors.Count == 0) {
             // If no inputs, run all the seeds in contents.
             // A program will only run to completion if streams of
             // computation have united which is like saying
 
-            
-            // Umm something else should be responsible for execution decisions.
+
+            // TODO: Umm something else should be responsible for execution decisions.
+            // This is basically a step forward in computation.
             MultiBlock parent = GetParent<MultiBlock>();
             ConnectorArea2D connectorArea2D = parent.GetConnector(outputConnector);
-            if (connectorArea2D != null) { 
+            if (connectorArea2D != null) {
                 Block nextBlock = connectorArea2D.GetParent<Block>();
-                nextBlock.Run();
+                ExitCode exitCode = nextBlock.Run();
+                if (exitCode == ExitCode.SUCCESS) {
+                    
+                    // Transfer units into empty block??
+                    IEnumerable<Unit> units = nextBlock.contentNode.GetChildren().Cast<Node>().Where(x => x is Unit)
+                    .Cast<Unit>();
+                    foreach (Unit unit in units.ToList()) {
+                        nextBlock.contentNode.RemoveChild(unit);
+                        contentNode.AddChild(unit);
+                    }
+                    
+                    // Move UnitBlock to position of successfully completed block.
+                    Position = nextBlock.Position;
+
+                    // Remove successfully computed block
+                    ConnectorArea2D newConnectorArea2D = nextBlock.outputConnector;
+                    parent.DisconnectBlock(nextBlock);
+
+                    // Replace computed blocks' connections with UnitBlock
+                    if (parent.GetConnector(newConnectorArea2D) != null) {
+                        parent.AddConnection(outputConnector, newConnectorArea2D);
+                    }
+                }
             }
+
             foreach (Node node in contentNode.GetChildren()) {
                 if (node is MultiBlock multiBlock) {
                     multiBlock.RunProgram();
                 }
             }
-        } else if (AreInputsSatisfied()) {
-            // If there are inputs, require them to be wired up.
+
+            return ExitCode.SUCCESS;
+        } else {
+            throw new InvalidOperationException("Subclassed Blocks should override Run()");
         }
     }
 

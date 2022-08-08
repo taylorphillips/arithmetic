@@ -24,10 +24,14 @@ public class SuccessorBlock : Block
 
     }
 
-    public override void Run() {
-        base.Run();
-
+    public override ExitCode Run() {
+        if (!AreInputsSatisfied()) {
+            GD.Print(this.GetPath() + " - block inputs not satisfied");
+            return ExitCode.SUCCESS;
+        }
+        
         PushButton();
+        return ExitCode.SUCCESS;
         // Empty above Block into this Block.
         // Push the button and add a ball.
         // Change this to be a UnitBlock

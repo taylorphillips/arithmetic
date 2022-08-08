@@ -26,12 +26,11 @@ public class AdditionBlock : Block
 
     }
 
-    public void Run() {
-        base.Run();
-
+    public override  ExitCode Run() {
         // Add input1
         // Add input2
         // Remove addition block, this becomes a numena block.
         // If output is connected, transfer balls to it.
+        return ExitCode.FAILURE;
     }
 }

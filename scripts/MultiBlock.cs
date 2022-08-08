@@ -31,7 +31,9 @@ public class MultiBlock : Node2D
     // 
     /// <summary>
     /// Transferings the fromBlock to the toBlock (this).
-    /// TODO: Make more robust and handle multiple connectors at once. 
+    /// Idempotent.
+    /// TODO: Make more robust and handle multiple connectors at once.
+    /// TODO: Not null checks?
     /// </summary>
     /// <param name="from"></param>
     /// <param name="to"></param>
@@ -54,11 +56,21 @@ public class MultiBlock : Node2D
     public void DisconnectBlock(Block block) {
         // TODO: Detect disjoint graph.
 
+        // Disconnect inputs
         foreach (ConnectorArea2D connector in block.inputConnectors) {
-            edges[edges[connector]] = null;
-            edges[connector] = null;
-            blocks.Remove(block);
+            if (GetConnector(connector) != null) {
+                edges[edges[connector]] = null;
+                edges[connector] = null;
+            }
         }
+
+        if (GetConnector(block.outputConnector) != null) {
+            edges[edges[block.outputConnector]] = null;
+            edges[block.outputConnector] = null;
+        }
+        
+        blocks.Remove(block);
+        RemoveChild(block);
     }
 
     public ConnectorArea2D GetConnector(ConnectorArea2D connectorArea2D) {
@@ -84,7 +96,7 @@ public class MultiBlock : Node2D
 
         // Unit blocks are the seeds of program execution.
         IEnumerable<Block> seeds = blocks.Where(block => block.inputConnectors.Count == 0); 
-        foreach (Block block in seeds) {
+        foreach (Block block in seeds.ToList()) {
             block.Run();
         }
     }
