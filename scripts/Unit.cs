@@ -2,7 +2,7 @@ using Godot;
 
 public class Unit : RigidBody2D
 {
-    public static readonly float MAX_DISTANCE = 45;
+    public static readonly float MAX_DISTANCE = 45 * 7f;
     
     private readonly float Radius = 10;
 
@@ -19,7 +19,9 @@ public class Unit : RigidBody2D
 
     public override void _PhysicsProcess(float delta) {
         Block block = GetParent().GetParent<Block>();
-        if (block.GlobalPosition.DistanceTo(GlobalPosition) > MAX_DISTANCE) {
+        MultiBlock multiBlock = block.GetParent<MultiBlock>();
+        // TODO: This is a garbage hack to keep the balls in the box.
+        if (block.GlobalPosition.DistanceTo(GlobalPosition) > MAX_DISTANCE * multiBlock.Scale[0]) {
             GlobalPosition = block.GlobalPosition;
         }
     }

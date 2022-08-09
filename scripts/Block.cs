@@ -221,6 +221,7 @@ public class Block : Node2D
     {
         SUCCESS = 0,
         FAILURE = 1,
+        RETRY = 2, // MAYBE THIS SHOULD BE CALLED "WAIT"?
     }
 
     public virtual ExitCode Run() {
@@ -235,29 +236,46 @@ public class Block : Node2D
             MultiBlock parent = GetParent<MultiBlock>();
             ConnectorArea2D connectorArea2D = parent.GetConnection(outputConnector);
             if (connectorArea2D != null) {
-                // MEGATODO: THIS WAS DISPOSED
                 Block nextBlock = connectorArea2D.GetParent<Block>();
                 ExitCode exitCode = nextBlock.Run();
+
                 if (exitCode == ExitCode.SUCCESS) {
-                    IEnumerable<Unit> units = nextBlock.contentNode.GetChildren().Cast<Node>().Where(x => x is Unit)
-                        .Cast<Unit>();
-                    foreach (Unit unit in units.ToList()) {
+                    Position = nextBlock.Position;
+
+                    // I prefer to think of this as "transmogrifying this OperationBlock into a UnitBlock."
+                    // Or alternatively this is letting the execution blocks chunk down.
+                    // Move this block to position of successfully completed block.
+                    foreach (Unit unit in nextBlock.GetUnits()) {
                         nextBlock.contentNode.RemoveChild(unit);
                         contentNode.AddChild(unit);
                         unit.Position = Vector2.Zero;
                     }
+                    
 
-                    // Move this block to position of successfully completed block.
-                    Position = nextBlock.Position;
+                    // Clean up other inputs.
+                    MultiBlock tmpMultiBlock;
+                    foreach (ConnectorArea2D input in nextBlock.inputConnectors) {
+                        ConnectorArea2D connection = parent.GetConnection(input);
+                        Block inputBlock = connection.GetParent<Block>();
+                        if (inputBlock.Equals(this)) {
+                            continue;
+                        }
+                    
+                        tmpMultiBlock = parent.DisconnectBlock(inputBlock);
+                        tmpMultiBlock.QueueFree();
+                    }
 
-                    // Connect this block to what the block its replacing was connected to.
+                    // Connect this block to what the block its replacing was connected to, then delete it.
                     ConnectorArea2D nextOutput = parent.GetConnection(nextBlock.outputConnector);
-                    MultiBlock newMultiBlock = parent.DisconnectBlock(nextBlock);
                     if (nextOutput != null) {
                         parent.Connect(outputConnector, nextOutput);
                     }
-
-                    newMultiBlock.Free();
+                    tmpMultiBlock = parent.DisconnectBlock(nextBlock);
+                    tmpMultiBlock.QueueFree();
+                } else if (exitCode == ExitCode.RETRY) {
+                    return ExitCode.RETRY;
+                } else {
+                    throw new InvalidOperationException("not expected");
                 }
             } else if (GetParent() is RootMultiBlock) {
                 foreach (Node node in contentNode.GetChildren()) {
@@ -281,5 +299,13 @@ public class Block : Node2D
         }
 
         return true;
+    }
+
+    public List<Unit> GetUnits() {
+        return contentNode.GetChildren()
+            .Cast<Node>()
+            .Where(x => x is Unit)
+            .Cast<Unit>()
+            .ToList();
     }
 }

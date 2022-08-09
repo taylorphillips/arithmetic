@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using static Block.ConnectorArea2D;
 
@@ -25,15 +26,30 @@ public class SuccessorBlock : Block
     }
 
     public override ExitCode Run() {
-        if (!AreInputsSatisfied()) {
-            GD.Print(this.GetPath() + " - block inputs not satisfied");
+        
+        MultiBlock multiBlock = GetParent<MultiBlock>();
+        ConnectorArea2D input = multiBlock.GetConnection(inputConnectors[0]);
+
+        if (input != null) {
+            Block inputBlock = input.GetParent<Block>();
+
+            // Verify input is UnitBlocks.
+            if (inputBlock.inputConnectors.Any()) {
+                return ExitCode.RETRY;
+            }
+
+            // Copy in the input units.
+            foreach (Unit unit in inputBlock.GetUnits()) {
+                inputBlock.contentNode.RemoveChild(unit);
+                unit.Free();
+                PushButton();
+            }
+            
+            // Successor pushes the button.
+            PushButton();
             return ExitCode.SUCCESS;
         }
-        
-        PushButton();
-        return ExitCode.SUCCESS;
-        // Empty above Block into this Block.
-        // Push the button and add a ball.
-        // Change this to be a UnitBlock
+
+        return ExitCode.FAILURE;
     }
 }

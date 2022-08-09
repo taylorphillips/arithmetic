@@ -1,3 +1,4 @@
+using System.Linq;
 using Godot;
 using static Block.ConnectorArea2D;
 
@@ -27,10 +28,33 @@ public class AdditionBlock : Block
     }
 
     public override  ExitCode Run() {
-        // Add input1
-        // Add input2
-        // Remove addition block, this becomes a numena block.
-        // If output is connected, transfer balls to it.
-        return ExitCode.FAILURE;
+        MultiBlock multiBlock = GetParent<MultiBlock>();
+        ConnectorArea2D input1 = multiBlock.GetConnection(inputConnectors[0]);
+        ConnectorArea2D input2 = multiBlock.GetConnection(inputConnectors[1]);
+
+        if (input1 != null && input2 != null) {
+            Block input1Block = input1.GetParent<Block>();
+            Block input2Block = input2.GetParent<Block>();
+
+            // Verify both input are UnitBlocks.
+            if (input1Block.inputConnectors.Any() || input2Block.inputConnectors.Any()) {
+                return ExitCode.RETRY;
+            }
+            
+            foreach (Unit unit in input1Block.GetUnits()) {
+                // PushButton or re-parent existing unit? Depends on animation?
+                input1Block.contentNode.RemoveChild(unit);
+                PushButton();
+            }
+            
+            foreach (Unit unit in input2Block.GetUnits()) {
+                // PushButton or re-parent existing unit? Depends on animation?
+                input2Block.contentNode.RemoveChild(unit);
+                unit.Free();
+                PushButton();
+            }
+        }
+
+        return ExitCode.SUCCESS;
     }
 }

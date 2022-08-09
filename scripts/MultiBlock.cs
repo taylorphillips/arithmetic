@@ -112,7 +112,7 @@ public class MultiBlock : Node2D
         // TODO: Be able to choose between breadth first, depth first execution and simultaneous.
         // TODO: Be able to fast forward programs.
 
-        // Unit blocks are the seeds of program execution.
+        // UnitBlocks are the seeds of program execution.
         IEnumerable<Block> seeds = blocks.Where(block => block.inputConnectors.Count == 0);
         foreach (Block block in seeds.ToList()) {
             block.Run();

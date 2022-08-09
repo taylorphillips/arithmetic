@@ -12,10 +12,10 @@ public class ControlPanel : GridContainer
         protected bool isSelected = false;
         protected bool isDragging = false;
 
-        
+
         private readonly string name;
         private readonly MultiBlock multiBlock;
-        protected  RootMultiBlock root;
+        protected RootMultiBlock root;
 
         public Button(string name, MultiBlock multiBlock) {
             this.name = name;
@@ -106,16 +106,35 @@ public class ControlPanel : GridContainer
             base.OnButtonUp();
         }
     }
-    
+
     public class RunButton : Button
     {
         public RunButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
 
-        public override void OnButtonDown() {
-        }
+        public override void OnButtonDown() { }
 
         public override void OnButtonUp() {
             root.RunProgram();
+        }
+    }
+
+    public class AdditionButton : Button
+    {
+        public AdditionButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+
+        public override void OnButtonUp() {
+            if (isDragging) {
+                AdditionBlock additionBlock = new AdditionBlock();
+                MultiBlock multiBlock = new MultiBlock(additionBlock);
+                // Children get downscaled 10x?
+                multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
+                multiBlock.GlobalPosition = root.Block.GetLocalMousePosition();
+                root.Block.AddContent(multiBlock);
+            } else {
+                // No clicking behavior for Addition?
+            }
+
+            base.OnButtonUp();
         }
     }
 
@@ -123,9 +142,10 @@ public class ControlPanel : GridContainer
     private RootMultiBlock root = new RootMultiBlock();
 
     public override void _Ready() {
-        this.root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
+        root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
         AddChild(new EmptyButton("Empty", new MultiBlock()));
         AddChild(new SuccessorButton("Successor", new MultiBlock()));
         AddChild(new RunButton("Run", new MultiBlock()));
+        AddChild(new AdditionButton("Addition", new MultiBlock()));
     }
 }
