@@ -11,7 +11,7 @@ public class AdditionBlock : Block
         contentNode = new Node2D();
         contentNode.ZIndex = ZIndex + 10;
         AddChild(contentNode);
-        
+
         ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(-40, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
@@ -22,37 +22,41 @@ public class AdditionBlock : Block
 
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
-        
-        AddChild(new SelectableArea2D());
 
+        AddChild(new SelectableArea2D());
     }
 
-    public override  ExitCode Run() {
+    public override ExitCode Run() {
         MultiBlock multiBlock = GetParent<MultiBlock>();
         ConnectorArea2D input1 = multiBlock.GetConnection(inputConnectors[0]);
         ConnectorArea2D input2 = multiBlock.GetConnection(inputConnectors[1]);
+        
+        
+        // If either input is missing, retry.
+        if (input1 == null || input2 == null) {
+            return ExitCode.RETRY;
+        }
 
-        if (input1 != null && input2 != null) {
-            Block input1Block = input1.GetParent<Block>();
-            Block input2Block = input2.GetParent<Block>();
+        // If either inputs are NOT UnitBlocks, retry.
+        Block input1Block = input1.GetParent<Block>();
+        Block input2Block = input2.GetParent<Block>();
+        if (input1Block.inputConnectors.Any() || input2Block.inputConnectors.Any()) {
+            return ExitCode.RETRY;
+        }
 
-            // Verify both input are UnitBlocks.
-            if (input1Block.inputConnectors.Any() || input2Block.inputConnectors.Any()) {
-                return ExitCode.RETRY;
-            }
-            
-            foreach (Unit unit in input1Block.GetUnits()) {
-                // PushButton or re-parent existing unit? Depends on animation?
-                input1Block.contentNode.RemoveChild(unit);
-                PushButton();
-            }
-            
-            foreach (Unit unit in input2Block.GetUnits()) {
-                // PushButton or re-parent existing unit? Depends on animation?
-                input2Block.contentNode.RemoveChild(unit);
-                unit.Free();
-                PushButton();
-            }
+        // Transfer Units from inputs to this block.
+        // TODO: PushButton or re-parent existing unit? Depends on animation?
+        foreach (Unit unit in input1Block.GetUnits()) {
+            input1Block.contentNode.RemoveChild(unit);
+            unit.Free();
+            PushButton();
+        }
+
+        foreach (Unit unit in input2Block.GetUnits()) {
+            // PushButton or re-parent existing unit? Depends on animation?
+            input2Block.contentNode.RemoveChild(unit);
+            unit.Free();
+            PushButton();
         }
 
         return ExitCode.SUCCESS;

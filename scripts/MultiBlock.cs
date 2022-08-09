@@ -54,11 +54,14 @@ public class MultiBlock : Node2D
         edges[from] = to;
         edges[to] = from;
 
+        // If they are separate MultiBlock, combine them delete old from MultiBlock
         MultiBlock fromMultiBlock = fromBlock.GetParent<MultiBlock>();
-        if (GetHashCode() != fromMultiBlock.GetHashCode()) {
+        if (!Equals(fromMultiBlock)) {
             // TODO: Improve this logic.
             fromMultiBlock.RemoveChild(fromBlock);
+            fromMultiBlock.blocks.Remove(fromBlock);
             if (fromMultiBlock.blocks.Any()) {
+                throw new InvalidOperationException("not supported");
                 fromMultiBlock.Free();
             }
 
@@ -84,9 +87,17 @@ public class MultiBlock : Node2D
     }
 
     private void RemoveConnection(ConnectorArea2D connectorArea2D) {
-        edges.Remove(new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, Vector2.Down));
+        if (connectorArea2D == null) {
+            throw new InvalidOperationException();
+        }
+
         if (GetConnection(connectorArea2D) != null) {
-            edges.Remove(edges[connectorArea2D]);
+            // TODO: Make this more gentle so that order doesn't matter
+            if (edges[edges[connectorArea2D]].Equals(connectorArea2D)) {
+                edges.Remove(edges[connectorArea2D]);
+            } else {
+                GD.Print("MISMATCH HAPPENED");
+            }
             edges.Remove(connectorArea2D);
         }
     }

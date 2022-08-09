@@ -239,38 +239,42 @@ public class Block : Node2D
                 Block nextBlock = connectorArea2D.GetParent<Block>();
                 ExitCode exitCode = nextBlock.Run();
 
-                if (exitCode == ExitCode.SUCCESS) {
-                    Position = nextBlock.Position;
 
-                    // I prefer to think of this as "transmogrifying this OperationBlock into a UnitBlock."
-                    // Or alternatively this is letting the execution blocks chunk down.
+                // I prefer to think of this as "transmogrifying this OperationBlock into a UnitBlock."
+                // Or alternatively this is letting the execution blocks chunk down.
+                if (exitCode == ExitCode.SUCCESS) {
                     // Move this block to position of successfully completed block.
+                    Position = nextBlock.Position;
+                    
+                    //Transfer any units from the block that just run, to this UnitBlock taking its place.    
                     foreach (Unit unit in nextBlock.GetUnits()) {
                         nextBlock.contentNode.RemoveChild(unit);
                         contentNode.AddChild(unit);
-                        unit.Position = Vector2.Zero;
                     }
-                    
 
-                    // Clean up other inputs.
+
+                    // Clean up other inputs besides this one which drove execution.
                     MultiBlock tmpMultiBlock;
                     foreach (ConnectorArea2D input in nextBlock.inputConnectors) {
                         ConnectorArea2D connection = parent.GetConnection(input);
+
+                        // ERRRRRRRRREOR HERE? 
                         Block inputBlock = connection.GetParent<Block>();
                         if (inputBlock.Equals(this)) {
                             continue;
                         }
-                    
+
                         tmpMultiBlock = parent.DisconnectBlock(inputBlock);
                         tmpMultiBlock.QueueFree();
                     }
 
                     // Connect this block to what the block its replacing was connected to, then delete it.
                     ConnectorArea2D nextOutput = parent.GetConnection(nextBlock.outputConnector);
+                    tmpMultiBlock = parent.DisconnectBlock(nextBlock);
                     if (nextOutput != null) {
                         parent.Connect(outputConnector, nextOutput);
                     }
-                    tmpMultiBlock = parent.DisconnectBlock(nextBlock);
+
                     tmpMultiBlock.QueueFree();
                 } else if (exitCode == ExitCode.RETRY) {
                     return ExitCode.RETRY;
