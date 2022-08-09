@@ -137,6 +137,26 @@ public class ControlPanel : GridContainer
             base.OnButtonUp();
         }
     }
+    
+    public class MultiplicationButton : Button
+    {
+        public MultiplicationButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+
+        public override void OnButtonUp() {
+            if (isDragging) {
+                MultiplicationBlock multiplicationBlock = new MultiplicationBlock();
+                MultiBlock multiBlock = new MultiBlock(multiplicationBlock);
+                // Children get downscaled 10x?
+                multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
+                multiBlock.GlobalPosition = root.Block.GetLocalMousePosition();
+                root.Block.AddContent(multiBlock);
+            } else {
+                // No clicking behavior for Addition?
+            }
+
+            base.OnButtonUp();
+        }
+    }
 
     // This is the block that represents the main window.
     private RootMultiBlock root = new RootMultiBlock();
