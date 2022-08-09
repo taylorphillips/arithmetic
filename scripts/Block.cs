@@ -111,6 +111,8 @@ public class Block : Node2D
     public List<ConnectorArea2D> inputConnectors = new List<ConnectorArea2D>();
     public ConnectorArea2D outputConnector;
 
+
+    // TODO: Its really the multiblock that's selected
     public bool IsSelectable = true;
     protected bool selected = false;
 
@@ -208,7 +210,8 @@ public class Block : Node2D
         // Confirm the snap by transferring snapFrom to snapTo
         if (snapFrom != null && snapTo != null) {
             MultiBlock toMultiBlock = snapTo.GetParent<Block>().GetParent<MultiBlock>();
-            toMultiBlock.AddConnection(snapFrom, snapTo);
+            toMultiBlock.Connect(snapFrom, snapTo);
+            GlobalPosition = getSnapPosition().Value;
             snapFrom = null;
             snapTo = null;
         }
@@ -230,37 +233,37 @@ public class Block : Node2D
             // TODO: Umm something else should be responsible for execution decisions.
             // This is basically a step forward in computation.
             MultiBlock parent = GetParent<MultiBlock>();
-            ConnectorArea2D connectorArea2D = parent.GetConnector(outputConnector);
+            ConnectorArea2D connectorArea2D = parent.GetConnection(outputConnector);
             if (connectorArea2D != null) {
+                // MEGATODO: THIS WAS DISPOSED
                 Block nextBlock = connectorArea2D.GetParent<Block>();
                 ExitCode exitCode = nextBlock.Run();
                 if (exitCode == ExitCode.SUCCESS) {
-                    
-                    // Transfer units into empty block??
                     IEnumerable<Unit> units = nextBlock.contentNode.GetChildren().Cast<Node>().Where(x => x is Unit)
-                    .Cast<Unit>();
+                        .Cast<Unit>();
                     foreach (Unit unit in units.ToList()) {
                         nextBlock.contentNode.RemoveChild(unit);
                         contentNode.AddChild(unit);
+                        unit.Position = Vector2.Zero;
                     }
-                    
-                    // Move UnitBlock to position of successfully completed block.
+
+                    // Move this block to position of successfully completed block.
                     Position = nextBlock.Position;
 
-                    // Remove successfully computed block
-                    ConnectorArea2D newConnectorArea2D = nextBlock.outputConnector;
-                    parent.DisconnectBlock(nextBlock);
-
-                    // Replace computed blocks' connections with UnitBlock
-                    if (parent.GetConnector(newConnectorArea2D) != null) {
-                        parent.AddConnection(outputConnector, newConnectorArea2D);
+                    // Connect this block to what the block its replacing was connected to.
+                    ConnectorArea2D nextOutput = parent.GetConnection(nextBlock.outputConnector);
+                    MultiBlock newMultiBlock = parent.DisconnectBlock(nextBlock);
+                    if (nextOutput != null) {
+                        parent.Connect(outputConnector, nextOutput);
                     }
-                }
-            }
 
-            foreach (Node node in contentNode.GetChildren()) {
-                if (node is MultiBlock multiBlock) {
-                    multiBlock.RunProgram();
+                    newMultiBlock.Free();
+                }
+            } else if (GetParent() is RootMultiBlock) {
+                foreach (Node node in contentNode.GetChildren()) {
+                    if (node is MultiBlock multiBlock) {
+                        multiBlock.RunProgram();
+                    }
                 }
             }
 
@@ -272,7 +275,7 @@ public class Block : Node2D
 
     public bool AreInputsSatisfied() {
         foreach (ConnectorArea2D connectorArea2D in inputConnectors) {
-            if (GetParent<MultiBlock>().GetConnector(connectorArea2D) == null) {
+            if (GetParent<MultiBlock>().GetConnection(connectorArea2D) == null) {
                 return false;
             }
         }

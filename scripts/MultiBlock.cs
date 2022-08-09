@@ -37,43 +37,61 @@ public class MultiBlock : Node2D
     /// </summary>
     /// <param name="from"></param>
     /// <param name="to"></param>
-    public void AddConnection(ConnectorArea2D from, ConnectorArea2D to) {
+    public void Connect(ConnectorArea2D from, ConnectorArea2D to) {
+        if (from is null) {
+            throw new ArgumentNullException();
+        }
+
+        if (to is null) {
+            throw new ArgumentNullException();
+        }
+
         Block fromBlock = from.GetParent<Block>();
         if (!blocks.Contains(fromBlock)) {
             blocks.Add(fromBlock);
         }
+
         edges[from] = to;
         edges[to] = from;
-        
-        // TODO: Improve this logic.
+
         MultiBlock fromMultiBlock = fromBlock.GetParent<MultiBlock>();
-        fromMultiBlock.RemoveChild(fromBlock);
-        fromMultiBlock.QueueFree();
-        AddChild(fromBlock);
-        fromBlock.Position = fromBlock.Position + new Vector2(0, 80);
+        if (GetHashCode() != fromMultiBlock.GetHashCode()) {
+            // TODO: Improve this logic.
+            fromMultiBlock.RemoveChild(fromBlock);
+            if (fromMultiBlock.blocks.Any()) {
+                fromMultiBlock.Free();
+            }
+
+            AddChild(fromBlock);
+        }
     }
 
-    public void DisconnectBlock(Block block) {
-        // TODO: Detect disjoint graph.
+    public MultiBlock DisconnectBlock(Block block) {
+        // TODO: Detect disjoint graph and do good things.
 
-        // Disconnect inputs
+        // Remove connectors
+        RemoveConnection(block.outputConnector);
         foreach (ConnectorArea2D connector in block.inputConnectors) {
-            if (GetConnector(connector) != null) {
-                edges[edges[connector]] = null;
-                edges[connector] = null;
-            }
+            RemoveConnection(connector);
         }
 
-        if (GetConnector(block.outputConnector) != null) {
-            edges[edges[block.outputConnector]] = null;
-            edges[block.outputConnector] = null;
-        }
-        
+        // Remove the blocks
         blocks.Remove(block);
         RemoveChild(block);
+
+        // Wrap disconnected piece in new MultiBlock and return
+        return new MultiBlock(block);
     }
 
-    public ConnectorArea2D GetConnector(ConnectorArea2D connectorArea2D) {
+    private void RemoveConnection(ConnectorArea2D connectorArea2D) {
+        edges.Remove(new ConnectorArea2D(ConnectorArea2D.ConnectorType.INPUT, Vector2.Down));
+        if (GetConnection(connectorArea2D) != null) {
+            edges.Remove(edges[connectorArea2D]);
+            edges.Remove(connectorArea2D);
+        }
+    }
+
+    public ConnectorArea2D GetConnection(ConnectorArea2D connectorArea2D) {
         if (edges.ContainsKey(connectorArea2D)) {
             return edges[connectorArea2D];
         } else {
@@ -95,7 +113,7 @@ public class MultiBlock : Node2D
         // TODO: Be able to fast forward programs.
 
         // Unit blocks are the seeds of program execution.
-        IEnumerable<Block> seeds = blocks.Where(block => block.inputConnectors.Count == 0); 
+        IEnumerable<Block> seeds = blocks.Where(block => block.inputConnectors.Count == 0);
         foreach (Block block in seeds.ToList()) {
             block.Run();
         }
