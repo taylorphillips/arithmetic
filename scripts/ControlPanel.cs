@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using Godot;
+using Array = Godot.Collections.Array;
 
 // TODO: Construct the Game scene with code and make the root multiblock at 0,0 but move the position
 // of the RootBlock to where it should be. Then position all children as ??
@@ -137,7 +138,7 @@ public class ControlPanel : GridContainer
             base.OnButtonUp();
         }
     }
-    
+
     public class MultiplicationButton : Button
     {
         public MultiplicationButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
@@ -158,6 +159,31 @@ public class ControlPanel : GridContainer
         }
     }
 
+    public class SaveButton : Button
+    {
+        public SaveButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+
+        public override void OnButtonDown() { }
+
+        public override void OnButtonUp() {
+            if (isDragging) { } else {
+                Block rootBlock = root.GetChild<Block>(0);
+                if (rootBlock.contentNode.GetChildren().Count > 1) {
+                    GD.Print("Too many children");
+                    return;
+                } else if (rootBlock.contentNode.GetChildren().Count == 0) {
+                    GD.Print("Nothing to save");
+                    return;
+                }
+
+                MultiBlock multiBlock = rootBlock.contentNode.GetChild<MultiBlock>(0);
+                multiBlock.SaveProgram();
+            }
+
+            base.OnButtonUp();
+        }
+    }
+
     // This is the block that represents the main window.
     private RootMultiBlock root = new RootMultiBlock();
 
@@ -167,5 +193,6 @@ public class ControlPanel : GridContainer
         AddChild(new SuccessorButton("Successor", new MultiBlock()));
         AddChild(new RunButton("Run", new MultiBlock()));
         AddChild(new AdditionButton("Addition", new MultiBlock()));
+        AddChild(new SaveButton("Save", new MultiBlock()));
     }
 }

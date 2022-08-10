@@ -11,8 +11,8 @@ Cells producing energy.
 Turtle moving around.
 
 ### TODO
-- The programs can run and be "measured"
-- Addition, Multiplication and Exponentiation all work
+- The programs can be "measured"
+- Multiplication and Exponentiation all work
 - Use NUnit for some tests
 - Add shader for select MultiBlock
 - Add shader for blocks as they execute
@@ -21,7 +21,7 @@ Turtle moving around.
 - Only one block should be selectable at a time (right now if they overlap you can grab two with one click).
 
 ### Long-Term Goals
-
+- Implement some sort of while looping behavior
 - Implement Collatz conjecture.
 - Implement Universal Turing Machine.
 - Implement this game inside the UTM.

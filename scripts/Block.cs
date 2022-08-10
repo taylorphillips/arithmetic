@@ -230,7 +230,6 @@ public class Block : Node2D
             // A program will only run to completion if streams of
             // computation have united which is like saying
 
-
             // TODO: Umm something else should be responsible for execution decisions.
             // This is basically a step forward in computation.
             MultiBlock parent = GetParent<MultiBlock>();
@@ -238,7 +237,6 @@ public class Block : Node2D
             if (connectorArea2D != null) {
                 Block nextBlock = connectorArea2D.GetParent<Block>();
                 ExitCode exitCode = nextBlock.Run();
-
 
                 // I prefer to think of this as "transmogrifying this OperationBlock into a UnitBlock."
                 // Or alternatively this is letting the execution blocks chunk down.
@@ -251,7 +249,6 @@ public class Block : Node2D
                         nextBlock.contentNode.RemoveChild(unit);
                         contentNode.AddChild(unit);
                     }
-
 
                     // Clean up other inputs besides this one which drove execution.
                     MultiBlock tmpMultiBlock;
@@ -311,5 +308,14 @@ public class Block : Node2D
             .Where(x => x is Unit)
             .Cast<Unit>()
             .ToList();
+    }
+
+    public string GetSerializedName() {
+        if (this is SuccessorBlock) {
+            return "Successor";
+        } else if (this is AdditionBlock) {
+            return "Addition";
+        }
+        return "Empty";
     }
 }
