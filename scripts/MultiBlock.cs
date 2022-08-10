@@ -24,8 +24,16 @@ public class MultiBlock : Node2D
     public MultiBlock() { }
 
     public MultiBlock(Block block) {
+        AddBlock(block);
+    }
+
+    public void AddBlock(Block block) {
         blocks.Add(block);
         AddChild(block);
+    }
+
+    public List<Block> GetBlocks() {
+        return blocks;
     }
 
     // 
@@ -128,82 +136,5 @@ public class MultiBlock : Node2D
         foreach (Block block in seeds.ToList()) {
             block.Run();
         }
-    }
-
-    public void SaveProgram() {
-        List<Block> blocks = this.blocks.Where(block => GetOutputBlock(block) == null).ToList();
-        if (blocks.Count == 0) {
-            throw new InvalidOperationException("aint no blocks bruh");
-        }
-
-        if (blocks.Count > 1) {
-            throw new InvalidOperationException("must have only one output node to save");
-        }
-
-        Block terminalBlock = blocks[0];
-        Stack<Block> stack = new Stack<Block>();
-        HashSet<Block> completedBlocks = new HashSet<Block>();
-        List<string> nodes = new List<string>();
-        List<string> edges = new List<string>();
-
-        // Depth first traversal starting at the end.
-        stack.Push(terminalBlock);
-        int nodeNum = 0;
-        while (stack.Any()) {
-            Block block = stack.Pop();
-            if (completedBlocks.Contains(block)) {
-                continue;
-            }
-
-            // Serialize the current block
-            nodes.Add(block.GetSerializedName() + nodeNum);
-
-            // Serialize the output edge (since we are traversing backwards).
-            ConnectorArea2D outputConnector = GetConnection(block.outputConnector);
-            if (outputConnector != null) {
-                Block outputBlock = outputConnector.GetParent<Block>();
-                string edge1 = block.GetSerializedName() + nodeNum + "-out0";
-                string edge2 = "";
-                for (int i = 0; i < outputBlock.inputConnectors.Count; i++) {
-                    if (outputBlock.inputConnectors[i].Equals(outputConnector)) {
-                        edge2 = outputBlock.GetSerializedName() + nodeNum + "-input" + i;
-                        break;
-                    }
-                }
-
-                if (edge2 == "") {
-                    throw new InvalidOperationException("missing edge");
-                }
-
-                edges.Add(edge1 + "," + edge2);
-            }
-
-            // Loop through input Blocks and enqueue them
-            foreach (ConnectorArea2D inputConnector in block.inputConnectors) {
-                ConnectorArea2D targetConnector = GetConnection(inputConnector);
-                if (targetConnector == null) {
-                    throw new InvalidOperationException("no open inputs allowed yet");
-                }
-
-                Block inputBlock = targetConnector.GetParent<Block>();
-                stack.Push(inputBlock);
-            }
-
-            nodeNum++;
-        }
-
-        GD.Print("Program Complete");
-        foreach (string node in nodes) {
-            GD.Print(node);
-        }
-
-        foreach (string edge in edges) {
-            GD.Print(edge);
-        }
-    }
-
-    public static MultiBlock LoadProgram() {
-        MultiBlock multiBlock = new MultiBlock();
-        return multiBlock;
     }
 }

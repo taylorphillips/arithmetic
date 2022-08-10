@@ -177,7 +177,7 @@ public class ControlPanel : GridContainer
                 }
 
                 MultiBlock multiBlock = rootBlock.contentNode.GetChild<MultiBlock>(0);
-                multiBlock.SaveProgram();
+                ProgramSerde programSerde = ProgramSerde.ToProgramSerde(multiBlock);
             }
 
             base.OnButtonUp();

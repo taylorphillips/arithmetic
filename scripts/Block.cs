@@ -318,4 +318,20 @@ public class Block : Node2D
         }
         return "Empty";
     }
+    
+    public static Block DeserializeBlock(string node){
+        // Store a map
+        if (node.StartsWith("Successor")) {
+            SuccessorBlock successorBlock = new SuccessorBlock();
+            return successorBlock;
+        } else if (node.StartsWith("Addition")) {
+            AdditionBlock additionBlock = new AdditionBlock();
+            return additionBlock;
+        } else if (node.StartsWith("Block")) {
+            Block block = new Block();
+            return block;
+        } else {
+            throw new InvalidOperationException("Invalid node serialization: " + node);
+        }
+    }
 }
