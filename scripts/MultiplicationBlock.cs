@@ -1,13 +1,17 @@
 using System.Linq;
 using Godot;
 using static Block.ConnectorArea2D;
+using static ControlPanel;
 
 /// <summary>
 /// Has two inputs.
 /// </summary>
 public class MultiplicationBlock : Block
 {
-    public MultiplicationBlock() {
+    private bool Memoized;
+    private int multiplicand;
+
+    public MultiplicationBlock() : base(true) {
         contentNode = new Node2D();
         contentNode.ZIndex = ZIndex + 10;
         AddChild(contentNode);
@@ -30,8 +34,7 @@ public class MultiplicationBlock : Block
         MultiBlock multiBlock = GetParent<MultiBlock>();
         ConnectorArea2D input1 = multiBlock.GetConnection(inputConnectors[0]);
         ConnectorArea2D input2 = multiBlock.GetConnection(inputConnectors[1]);
-        
-        
+
         // If either input is missing, retry.
         if (input1 == null || input2 == null) {
             return ExitCode.RETRY;
@@ -43,25 +46,39 @@ public class MultiplicationBlock : Block
         if (input1Block.inputConnectors.Any() || input2Block.inputConnectors.Any()) {
             return ExitCode.RETRY;
         }
-        
-        // Use input1 to create a button which creates input1.
-        // For each Unit input2, push the input1 button
-        //input1Block.ToButton();
-        Button input1Button = new ControlPanel.Button("anon");
-        
-        // Consume input1
-        foreach (Unit unit in input2Block.GetUnits()) {
-            input2Block.contentNode.RemoveChild(unit);
-            unit.Free();
+
+        // Consume input1 FOR ANIMATION PURPOSES ONLY
+        int unitCount = input1Block.GetUnits().Count;
+        if (!Memoized) {
+            multiplicand = unitCount;
+            Memoized = true;
+
+            // Turn the units Red;
+            foreach (Unit unit in input1Block.GetUnits()) {
+                unit.Color = Colors.Red;
+                unit.Update();
+            }
+
+            return ExitCode.PARTIAL;
         }
+
 
         // For each Unit input2, push the input1 button
         foreach (Unit unit in input2Block.GetUnits()) {
             input2Block.contentNode.RemoveChild(unit);
             unit.Free();
-            //input1Button.Run();
-        }
+            for (int i = 0; i < multiplicand; i++) {
+                PushButton();
+            }
 
+            return ExitCode.PARTIAL;
+        }
+        
+        // Remove Red units in multiplicand.
+        foreach (Unit unit in input1Block.GetUnits()) {
+            input1Block.contentNode.RemoveChild(unit);
+            unit.Free();
+        }
         return ExitCode.SUCCESS;
     }
 }

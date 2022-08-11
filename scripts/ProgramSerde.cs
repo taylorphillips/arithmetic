@@ -5,11 +5,13 @@ using Newtonsoft.Json;
 
 public class ProgramSerde
 {
+    // MINOR: Serialize this as strings and not integer (ordinals).
     public enum BlockTypeEnum
     {
         Block = 0,
         Successor = 1,
         Addition = 2,
+        Multiplication
     }
 
     public static BlockTypeEnum GetBlockType(Block block) {
@@ -17,6 +19,8 @@ public class ProgramSerde
             return BlockTypeEnum.Successor;
         } else if (block is AdditionBlock) {
             return BlockTypeEnum.Addition;
+        } else if (block is MultiplicationBlock) {
+            return BlockTypeEnum.Multiplication;
         }
 
         return BlockTypeEnum.Block;
@@ -42,12 +46,15 @@ public class ProgramSerde
         public ConnectorSerde Connector2 { get; set; }
     }
 
-    public List<BlockSerde> Blocks { get; set; }
-    public List<EdgeSerde> Edges { get; set; }
+    public List<BlockSerde> Blocks { get; }
+    public List<EdgeSerde> Edges { get; }
+    
+    public int NumUnits { get; set; }
 
     public ProgramSerde() {
         Blocks = new List<BlockSerde>();
         Edges = new List<EdgeSerde>();
+        NumUnits = 0;
     }
 
     public static ProgramSerde ToProgramSerde(MultiBlock multiBlock) {
@@ -125,6 +132,10 @@ public class ProgramSerde
                 stack.Push(inputBlock);
             }
         }
+        
+        // Add Units.
+        // TODO: Maybe error if there are units and blocks?
+        programSerde.NumUnits = terminalBlock.GetUnits().Count;
 
         return programSerde;
     }
@@ -139,6 +150,9 @@ public class ProgramSerde
             blockMap.TryGetValue(blockSerde.Identifier, out block);
             if (block == null) {
                 switch (blockSerde.BlockType) {
+                    case BlockTypeEnum.Multiplication:
+                        block = new MultiplicationBlock();
+                        break;
                     case BlockTypeEnum.Addition:
                         block = new AdditionBlock();
                         break;
@@ -151,9 +165,6 @@ public class ProgramSerde
                     default:
                         throw new ArgumentOutOfRangeException();
                 }
-
-                // DAFUUQQQ
-                // Create connectors??!!!
 
                 blockMap[blockSerde.Identifier] = block;
             }
@@ -173,6 +184,13 @@ public class ProgramSerde
                 block1.outputConnector
             );
         });
+        
+        // Add units
+        // TODO: Maybe error if there are units and blocks?
+        for (int i = 0; i < programSerde.NumUnits; i++) {
+            multiBlock.GetBlocks()[0].PushButton();
+        }
+        
 
         return multiBlock;
     }

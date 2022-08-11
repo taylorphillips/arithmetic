@@ -1,13 +1,14 @@
 using System.Linq;
 using Godot;
 using static Block.ConnectorArea2D;
+using static ControlPanel;
 
 /// <summary>
 /// Has two inputs.
 /// </summary>
-public class AdditionBlock : Block
+public class ExponentBlock : Block
 {
-    public AdditionBlock() : base(true) {
+    public ExponentBlock() {
         contentNode = new Node2D();
         contentNode.ZIndex = ZIndex + 10;
         AddChild(contentNode);
@@ -30,8 +31,8 @@ public class AdditionBlock : Block
         MultiBlock multiBlock = GetParent<MultiBlock>();
         ConnectorArea2D input1 = multiBlock.GetConnection(inputConnectors[0]);
         ConnectorArea2D input2 = multiBlock.GetConnection(inputConnectors[1]);
-
-
+        
+        
         // If either input is missing, retry.
         if (input1 == null || input2 == null) {
             return ExitCode.RETRY;
@@ -43,22 +44,23 @@ public class AdditionBlock : Block
         if (input1Block.inputConnectors.Any() || input2Block.inputConnectors.Any()) {
             return ExitCode.RETRY;
         }
-
-        // Transfer Units from inputs to this block.
-        // TODO: PushButton or re-parent existing unit? Depends on animation?
+        
+        // Use input1 to create a button which creates input1. (We turn it into a stamp)
+        // For each Unit input2, push the input1 button
+        ProgramSerde programSerde = ProgramSerde.ToProgramSerde(multiBlock);
+        CustomButton multiplicandButton = new CustomButton("anon", programSerde);
+        
+        // Consume input1 FOR ANIMATION PURPOSES ONLY
         foreach (Unit unit in input1Block.GetUnits()) {
-            input1Block.contentNode.RemoveChild(unit);
-            unit.Free();
-            PushButton();
-            return ExitCode.PARTIAL;
-        }
-
-        foreach (Unit unit in input2Block.GetUnits()) {
-            // PushButton or re-parent existing unit? Depends on animation?
             input2Block.contentNode.RemoveChild(unit);
             unit.Free();
-            PushButton();
-            return ExitCode.PARTIAL;
+        }
+
+        // For each Unit input2, push the input1 button
+        foreach (Unit unit in input2Block.GetUnits()) {
+            input2Block.contentNode.RemoveChild(unit);
+            unit.Free();
+            //multiplicandButton.RunToCompletionAndOutputUnitsInside(this);
         }
 
         return ExitCode.SUCCESS;

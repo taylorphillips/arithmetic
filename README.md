@@ -9,6 +9,8 @@ and interacting with the system, it becomes obvious what is meant by our arithme
 
 Cells producing energy.
 Turtle moving around.
+Stamping.
+Minecraft math.
 
 ### TODO
 - The programs can be "measured"

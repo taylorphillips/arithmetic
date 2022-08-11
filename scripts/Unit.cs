@@ -3,12 +3,14 @@ using Godot;
 public class Unit : RigidBody2D
 {
     public static readonly float MAX_DISTANCE = 45 * 7f;
-    
+
+    public Color Color { get; set; }
     private readonly float Radius = 10;
 
     public override void _Ready() {
         CanSleep = false;
         ZIndex = 1;
+        Color = Colors.Blue;
         CircleShape2D circleShape2D = new CircleShape2D();
         circleShape2D.Radius = Radius;
 
@@ -27,6 +29,6 @@ public class Unit : RigidBody2D
     }
 
     public override void _Draw() {
-        DrawCircle(new Vector2(0, 0), Radius, Colors.Blue);
+        DrawCircle(new Vector2(0, 0), Radius, Color);
     }
 }

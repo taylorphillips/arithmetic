@@ -127,14 +127,23 @@ public class MultiBlock : Node2D
         return edges[block.outputConnector].GetParent<Block>();
     }
 
-    public void RunProgram() {
+    public ExitCode StepProgram() {
         // TODO: Be able to choose between breadth first, depth first execution and simultaneous.
         // TODO: Be able to fast forward programs.
 
         // UnitBlocks are the seeds of program execution.
         IEnumerable<Block> seeds = blocks.Where(block => block.inputConnectors.Count == 0);
         foreach (Block block in seeds.ToList()) {
-            block.Run();
+            ExitCode exitCode = block.Run();
+            if (exitCode == ExitCode.SUCCESS || exitCode == ExitCode.PARTIAL) {
+                break;
+            } else if (exitCode == ExitCode.FAILURE) {
+                return ExitCode.FAILURE;
+            }
         }
+        
+        // If all are units
+
+        return ExitCode.SUCCESS;
     }
 }

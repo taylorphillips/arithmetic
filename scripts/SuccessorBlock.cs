@@ -7,9 +7,9 @@ using static Block.ConnectorArea2D;
 /// </summary>
 public class SuccessorBlock : Block
 {
-    public SuccessorBlock() {
+    public SuccessorBlock() : base(true) {
         // TODO: Style this as a successor.
-        
+
         contentNode = new Node2D();
         contentNode.ZIndex = ZIndex + 10;
         AddChild(contentNode);
@@ -17,16 +17,14 @@ public class SuccessorBlock : Block
         ConnectorArea2D inputConnector = new ConnectorArea2D(ConnectorType.INPUT, new Vector2(0, -40));
         inputConnectors.Add(inputConnector);
         AddChild(inputConnector);
-        
+
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
-        
-        AddChild(new SelectableArea2D());
 
+        AddChild(new SelectableArea2D());
     }
 
     public override ExitCode Run() {
-        
         MultiBlock multiBlock = GetParent<MultiBlock>();
         ConnectorArea2D input = multiBlock.GetConnection(inputConnectors[0]);
 
@@ -44,7 +42,7 @@ public class SuccessorBlock : Block
                 unit.Free();
                 PushButton();
             }
-            
+
             // Successor pushes the button.
             PushButton();
             return ExitCode.SUCCESS;

@@ -17,6 +17,7 @@ public class Block : Node2D
     {
         public SelectableArea2D() {
             Name = "SelectableArea2D";
+            GD.Print("CREATED: " + Name + "-" + GetInstanceId());
             Polygon2D poly = new Polygon2D();
             poly.Color = Colors.Gray;
             poly.Polygon = new Vector2[] {
@@ -51,11 +52,17 @@ public class Block : Node2D
         }
 
         public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
+            Block parent = GetParent<Block>();
+            if (!parent.IsSelectable) {
+                return;
+            }
+
             if (@event is InputEventMouseButton mouseEvent) {
                 if (mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
-                    GetParent<Block>().select();
+                    GD.Print("SELECTED: " + Name + "-" + GetInstanceId());
+                    parent.select();
                 } else if (!mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
-                    GetParent<Block>().deselect();
+                    parent.deselect();
                 }
             }
         }
@@ -115,11 +122,9 @@ public class Block : Node2D
     protected ConnectorArea2D snapFrom;
     protected ConnectorArea2D snapTo;
 
-    private RandomNumberGenerator rng;
+    private RandomNumberGenerator rng = new RandomNumberGenerator();
 
     public Block() {
-        rng = new RandomNumberGenerator();
-
         contentNode = new Node2D();
         contentNode.ZIndex = 10;
         AddChild(contentNode);
@@ -127,6 +132,12 @@ public class Block : Node2D
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
         AddChild(new SelectableArea2D());
+    }
+
+    public Block(bool alreadyInitialized) {
+        // TODO: THis is hack to prevent the default constructor from being called.
+        // The long-term solution is a refactor. We might not even need subclasses
+        // for the blocks, and Block could render based #inputs and #outputs (ish).
     }
 
     public override void _PhysicsProcess(float delta) {
@@ -151,7 +162,6 @@ public class Block : Node2D
         contentNode.AddChild(unit);
     }
 
-
     public void AddContent(MultiBlock block) {
         contentNode.AddChild(block);
     }
@@ -162,15 +172,10 @@ public class Block : Node2D
         }
     }
 
-    /// <summary>
-    /// 
-    /// </summary>
-    /// <param name="from"></param>
-    /// <param name="to"></param>
-    /// <returns></returns>
     public static Vector2 GetSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
         if (from.connectorType == ConnectorType.INPUT) {
-            return to.GlobalPosition + new Vector2(0, from.Radius * 2);
+            //return to.GlobalPosition + new Vector2(0, from.Radius * 2);
+            return to.GlobalPosition + new Vector2(0, 40);
         } else {
             return to.GlobalPosition + new Vector2(0, -40);
         }
@@ -222,6 +227,7 @@ public class Block : Node2D
         SUCCESS = 0,
         FAILURE = 1,
         RETRY = 2, // MAYBE THIS SHOULD BE CALLED "WAIT"?
+        PARTIAL = 3, // This is a hack to allow for steps (SUCCESS would result in block movement)
     }
 
     public virtual ExitCode Run() {
@@ -273,15 +279,13 @@ public class Block : Node2D
                     }
 
                     tmpMultiBlock.QueueFree();
-                } else if (exitCode == ExitCode.RETRY) {
-                    return ExitCode.RETRY;
                 } else {
-                    throw new InvalidOperationException("not expected");
+                    return exitCode;
                 }
             } else if (GetParent() is RootMultiBlock) {
                 foreach (Node node in contentNode.GetChildren()) {
                     if (node is MultiBlock multiBlock) {
-                        multiBlock.RunProgram();
+                        multiBlock.StepProgram();
                     }
                 }
             }
@@ -302,27 +306,19 @@ public class Block : Node2D
         return true;
     }
 
+    public List<Block> GetBlocks() {
+        return contentNode.GetChildren()
+            .Cast<Node>()
+            .Where(x => x is Block)
+            .Cast<Block>()
+            .ToList();
+    }
+
     public List<Unit> GetUnits() {
         return contentNode.GetChildren()
             .Cast<Node>()
             .Where(x => x is Unit)
             .Cast<Unit>()
             .ToList();
-    }
-
-    public static Block DeserializeBlock(string node) {
-        // Store a map
-        if (node.StartsWith("Successor")) {
-            SuccessorBlock successorBlock = new SuccessorBlock();
-            return successorBlock;
-        } else if (node.StartsWith("Addition")) {
-            AdditionBlock additionBlock = new AdditionBlock();
-            return additionBlock;
-        } else if (node.StartsWith("Block")) {
-            Block block = new Block();
-            return block;
-        } else {
-            throw new InvalidOperationException("Invalid node serialization: " + node);
-        }
     }
 }

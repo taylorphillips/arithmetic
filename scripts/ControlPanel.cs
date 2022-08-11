@@ -113,7 +113,7 @@ public class ControlPanel : GridContainer
         public override void OnButtonDown() { }
 
         public override void OnButtonUp() {
-            root.RunProgram();
+            root.StepProgram();
         }
     }
 
@@ -164,7 +164,7 @@ public class ControlPanel : GridContainer
         public CustomButton(string name, ProgramSerde programSerde) : base(name) {
             this.programSerde = programSerde;
         }
-
+        
         public override void OnButtonUp() {
             if (isDragging) {
                 MultiBlock multiBlock = ProgramSerde.FromProgramSerde(programSerde);
@@ -176,6 +176,36 @@ public class ControlPanel : GridContainer
             }
 
             base.OnButtonUp();
+        }
+        
+        // TODO: HACKY AF
+        public void RunToCompletionAndOutputUnitsInside(MultiplicationBlock destinationBlock) {
+            MultiBlock multiBlock = ProgramSerde.FromProgramSerde(programSerde);
+
+            int count = 0;
+            while (true) {
+                if (multiBlock.StepProgram() == Block.ExitCode.FAILURE) {
+                    throw new InvalidOperationException("program failed");
+                }
+                
+                if (multiBlock.GetBlocks().Count == 1) {
+                    break;
+                } else {
+                    count++;
+                    if (count > 10) {
+                        throw new InvalidOperationException();
+                    }
+                }
+            }
+            
+            // Transfer all units.
+            GD.Print( "BACKGROUND RUN YIELDS UNITS: " + multiBlock.GetBlocks()[0].GetUnits().Count);
+            multiBlock.GetBlocks()[0].GetUnits().ForEach(unit => {
+                destinationBlock.PushButton();
+            });
+            
+            // Delete the executed MultiBlock
+            multiBlock.Free();
         }
     }
 
@@ -216,6 +246,7 @@ public class ControlPanel : GridContainer
         AddChild(new SuccessorButton("Successor"));
         AddChild(new RunButton("Run"));
         AddChild(new AdditionButton("Addition"));
+        AddChild(new MultiplicationButton("Multiplication"));
         AddChild(new SaveButton("Save"));
     }
 }
