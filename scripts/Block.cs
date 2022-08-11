@@ -15,9 +15,7 @@ public class Block : Node2D
 {
     public class SelectableArea2D : Area2D
     {
-        public SelectableArea2D() { }
-
-        public override void _Ready() {
+        public SelectableArea2D() {
             Name = "SelectableArea2D";
             Polygon2D poly = new Polygon2D();
             poly.Color = Colors.Gray;
@@ -67,8 +65,8 @@ public class Block : Node2D
     {
         public enum ConnectorType
         {
-            INPUT = 1,
-            OUTPUT = 2,
+            INPUT = 0,
+            OUTPUT = 1,
         }
 
         public readonly Vector2 initPosition;
@@ -78,9 +76,7 @@ public class Block : Node2D
         public ConnectorArea2D(ConnectorType connectorType, Vector2 initPosition) {
             this.connectorType = connectorType;
             this.initPosition = initPosition;
-        }
 
-        public override void _Ready() {
             ZIndex = -1;
             Name = "ConnectorArea2D-" + connectorType;
             CircleShape2D circle = new CircleShape2D();
@@ -123,9 +119,7 @@ public class Block : Node2D
 
     public Block() {
         rng = new RandomNumberGenerator();
-    }
 
-    public override void _Ready() {
         contentNode = new Node2D();
         contentNode.ZIndex = 10;
         AddChild(contentNode);
@@ -138,12 +132,12 @@ public class Block : Node2D
     public override void _PhysicsProcess(float delta) {
         if (selected) {
             MultiBlock parent = GetParent<MultiBlock>();
-            if (getSnapPosition().HasValue) {
+            if (GetSnapPosition().HasValue) {
                 if (parent.GlobalPosition.DistanceTo(GetGlobalMousePosition()) > 40f) {
                     snapFrom = null;
                     snapTo = null;
                 } else {
-                    parent.GlobalPosition = getSnapPosition().Value;
+                    parent.GlobalPosition = GetSnapPosition().Value;
                 }
             } else {
                 parent.GlobalPosition = GetGlobalMousePosition();
@@ -168,7 +162,13 @@ public class Block : Node2D
         }
     }
 
-    private Vector2 getSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="from"></param>
+    /// <param name="to"></param>
+    /// <returns></returns>
+    public static Vector2 GetSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
         if (from.connectorType == ConnectorType.INPUT) {
             return to.GlobalPosition + new Vector2(0, from.Radius * 2);
         } else {
@@ -176,9 +176,9 @@ public class Block : Node2D
         }
     }
 
-    private Vector2? getSnapPosition() {
+    private Vector2? GetSnapPosition() {
         if (snapFrom != null && snapTo != null) {
-            return getSnapPosition(snapFrom, snapTo);
+            return GetSnapPosition(snapFrom, snapTo);
         } else {
             return null;
         }
@@ -211,7 +211,7 @@ public class Block : Node2D
         if (snapFrom != null && snapTo != null) {
             MultiBlock toMultiBlock = snapTo.GetParent<Block>().GetParent<MultiBlock>();
             toMultiBlock.Connect(snapFrom, snapTo);
-            GlobalPosition = getSnapPosition().Value;
+            GlobalPosition = GetSnapPosition().Value;
             snapFrom = null;
             snapTo = null;
         }
@@ -243,7 +243,7 @@ public class Block : Node2D
                 if (exitCode == ExitCode.SUCCESS) {
                     // Move this block to position of successfully completed block.
                     Position = nextBlock.Position;
-                    
+
                     //Transfer any units from the block that just run, to this UnitBlock taking its place.    
                     foreach (Unit unit in nextBlock.GetUnits()) {
                         nextBlock.contentNode.RemoveChild(unit);
@@ -310,16 +310,7 @@ public class Block : Node2D
             .ToList();
     }
 
-    public string GetSerializedName() {
-        if (this is SuccessorBlock) {
-            return "Successor";
-        } else if (this is AdditionBlock) {
-            return "Addition";
-        }
-        return "Empty";
-    }
-    
-    public static Block DeserializeBlock(string node){
+    public static Block DeserializeBlock(string node) {
         // Store a map
         if (node.StartsWith("Successor")) {
             SuccessorBlock successorBlock = new SuccessorBlock();

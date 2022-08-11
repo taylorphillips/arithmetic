@@ -7,9 +7,21 @@ public class ProgramSerde
 {
     public enum BlockTypeEnum
     {
-        Successor,
-        Block,
+        Block = 0,
+        Successor = 1,
+        Addition = 2,
     }
+
+    public static BlockTypeEnum GetBlockType(Block block) {
+        if (block is SuccessorBlock) {
+            return BlockTypeEnum.Successor;
+        } else if (block is AdditionBlock) {
+            return BlockTypeEnum.Addition;
+        }
+
+        return BlockTypeEnum.Block;
+    }
+
 
     public class BlockSerde
     {
@@ -63,10 +75,8 @@ public class ProgramSerde
             }
 
             // Serialize the current block
-            BlockTypeEnum blockTypeEnum;
-            Enum.TryParse(block.GetSerializedName(), out blockTypeEnum);
             BlockSerde blockSerde1 = new BlockSerde() {
-                BlockType = blockTypeEnum,
+                BlockType = GetBlockType(block),
                 Identifier = block.GetInstanceId(),
             };
             programSerde.Blocks.Add(blockSerde1);
@@ -75,9 +85,8 @@ public class ProgramSerde
             Block.ConnectorArea2D outputConnector = multiBlock.GetConnection(block.outputConnector);
             if (outputConnector != null) {
                 Block outputBlock = outputConnector.GetParent<Block>();
-                Enum.TryParse(block.GetSerializedName(), out blockTypeEnum);
                 BlockSerde blockSerde2 = new BlockSerde() {
-                    BlockType = blockTypeEnum,
+                    BlockType = GetBlockType(outputBlock),
                     Identifier = outputBlock.GetInstanceId(),
                 };
                 ConnectorSerde connectorSerde1 = new ConnectorSerde() {
@@ -86,7 +95,6 @@ public class ProgramSerde
                     Index = 0,
                 };
                 ConnectorSerde connectorSerde2 = new ConnectorSerde();
-
 
                 for (int i = 0; i < outputBlock.inputConnectors.Count; i++) {
                     if (outputBlock.inputConnectors[i].Equals(outputConnector)) {
@@ -99,11 +107,9 @@ public class ProgramSerde
                     }
                 }
 
-                // TODO: Check for empty connectorSerde2?
-
                 EdgeSerde edgeSerde = new EdgeSerde() {
-                    Connector2 = connectorSerde1,
-                    Connector1 = connectorSerde2,
+                    Connector1 = connectorSerde1,
+                    Connector2 = connectorSerde2,
                 };
                 programSerde.Edges.Add(edgeSerde);
             }
@@ -132,22 +138,42 @@ public class ProgramSerde
             Block block;
             blockMap.TryGetValue(blockSerde.Identifier, out block);
             if (block == null) {
-                block = new Block();
+                switch (blockSerde.BlockType) {
+                    case BlockTypeEnum.Addition:
+                        block = new AdditionBlock();
+                        break;
+                    case BlockTypeEnum.Successor:
+                        block = new SuccessorBlock();
+                        break;
+                    case BlockTypeEnum.Block:
+                        block = new Block();
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                // DAFUUQQQ
+                // Create connectors??!!!
+
                 blockMap[blockSerde.Identifier] = block;
             }
+
             multiBlock.AddBlock(block);
         }
-        
+
         // Add the connections and positions.
         programSerde.Edges.ForEach(edge => {
             // TODO: This is a convenient hack since all edges were currently serialized in reverse from output to input.
             Block block1 = blockMap[edge.Connector1.Block.Identifier];
             Block block2 = blockMap[edge.Connector2.Block.Identifier];
             multiBlock.Connect(block1.outputConnector, block2.inputConnectors[edge.Connector2.Index]);
-            
-            // TODO: How to position them?
+
+            block2.Position = Block.GetSnapPosition(
+                block2.inputConnectors[edge.Connector2.Index],
+                block1.outputConnector
+            );
         });
-        
+
         return multiBlock;
     }
 }

@@ -7,7 +7,7 @@ using static Block.ConnectorArea2D;
 /// </summary>
 public class SuccessorBlock : Block
 {
-    public override void _Ready() {
+    public SuccessorBlock() {
         // TODO: Style this as a successor.
         
         contentNode = new Node2D();

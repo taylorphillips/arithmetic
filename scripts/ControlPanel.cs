@@ -15,12 +15,10 @@ public class ControlPanel : GridContainer
 
 
         private readonly string name;
-        private readonly MultiBlock multiBlock;
         protected RootMultiBlock root;
 
-        public Button(string name, MultiBlock multiBlock) {
+        public Button(string name) {
             this.name = name;
-            this.multiBlock = multiBlock;
         }
 
         public override void _Ready() {
@@ -67,7 +65,7 @@ public class ControlPanel : GridContainer
     {
         private static RandomNumberGenerator rng;
 
-        public SuccessorButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+        public SuccessorButton(string name) : base(name) { }
 
 
         public override void OnButtonUp() {
@@ -90,7 +88,7 @@ public class ControlPanel : GridContainer
 
     public class EmptyButton : Button
     {
-        public EmptyButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+        public EmptyButton(string name) : base(name) { }
 
         public override void OnButtonUp() {
             if (isDragging) {
@@ -110,7 +108,7 @@ public class ControlPanel : GridContainer
 
     public class RunButton : Button
     {
-        public RunButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+        public RunButton(string name) : base(name) { }
 
         public override void OnButtonDown() { }
 
@@ -121,7 +119,7 @@ public class ControlPanel : GridContainer
 
     public class AdditionButton : Button
     {
-        public AdditionButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+        public AdditionButton(string name) : base(name) { }
 
         public override void OnButtonUp() {
             if (isDragging) {
@@ -141,7 +139,7 @@ public class ControlPanel : GridContainer
 
     public class MultiplicationButton : Button
     {
-        public MultiplicationButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+        public MultiplicationButton(string name) : base(name) { }
 
         public override void OnButtonUp() {
             if (isDragging) {
@@ -158,10 +156,32 @@ public class ControlPanel : GridContainer
             base.OnButtonUp();
         }
     }
+    
+    public class CustomButton : Button
+    {
+        private readonly ProgramSerde programSerde;
+        
+        public CustomButton(string name, ProgramSerde programSerde) : base(name) {
+            this.programSerde = programSerde;
+        }
+
+        public override void OnButtonUp() {
+            if (isDragging) {
+                MultiBlock multiBlock = ProgramSerde.FromProgramSerde(programSerde);
+                multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
+                multiBlock.GlobalPosition = root.Block.GetLocalMousePosition();
+                root.Block.AddContent(multiBlock);
+            } else {
+                // No clicking behavior for Addition?
+            }
+
+            base.OnButtonUp();
+        }
+    }
 
     public class SaveButton : Button
     {
-        public SaveButton(string name, MultiBlock multiBlock) : base(name, multiBlock) { }
+        public SaveButton(string name) : base(name) { }
 
         public override void OnButtonDown() { }
 
@@ -178,6 +198,9 @@ public class ControlPanel : GridContainer
 
                 MultiBlock multiBlock = rootBlock.contentNode.GetChild<MultiBlock>(0);
                 ProgramSerde programSerde = ProgramSerde.ToProgramSerde(multiBlock);
+
+                CustomButton button = new CustomButton("snog", programSerde);
+                GetParent<ControlPanel>().AddChild(button);
             }
 
             base.OnButtonUp();
@@ -189,10 +212,10 @@ public class ControlPanel : GridContainer
 
     public override void _Ready() {
         root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
-        AddChild(new EmptyButton("Empty", new MultiBlock()));
-        AddChild(new SuccessorButton("Successor", new MultiBlock()));
-        AddChild(new RunButton("Run", new MultiBlock()));
-        AddChild(new AdditionButton("Addition", new MultiBlock()));
-        AddChild(new SaveButton("Save", new MultiBlock()));
+        AddChild(new EmptyButton("Empty"));
+        AddChild(new SuccessorButton("Successor"));
+        AddChild(new RunButton("Run"));
+        AddChild(new AdditionButton("Addition"));
+        AddChild(new SaveButton("Save"));
     }
 }

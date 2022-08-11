@@ -7,7 +7,7 @@ using static Block.ConnectorArea2D;
 /// </summary>
 public class MultiplicationBlock : Block
 {
-    public override void _Ready() {
+    public MultiplicationBlock() {
         contentNode = new Node2D();
         contentNode.ZIndex = ZIndex + 10;
         AddChild(contentNode);
@@ -47,7 +47,7 @@ public class MultiplicationBlock : Block
         // Use input1 to create a button which creates input1.
         // For each Unit input2, push the input1 button
         //input1Block.ToButton();
-        Button input1Button = new ControlPanel.Button("anon", new MultiBlock());
+        Button input1Button = new ControlPanel.Button("anon");
         
         // Consume input1
         foreach (Unit unit in input2Block.GetUnits()) {

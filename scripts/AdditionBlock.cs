@@ -7,7 +7,7 @@ using static Block.ConnectorArea2D;
 /// </summary>
 public class AdditionBlock : Block
 {
-    public override void _Ready() {
+    public AdditionBlock() {
         contentNode = new Node2D();
         contentNode.ZIndex = ZIndex + 10;
         AddChild(contentNode);
