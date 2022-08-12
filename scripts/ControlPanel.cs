@@ -23,11 +23,9 @@ public class ControlPanel : GridContainer
 
         public override void _Ready() {
             root = GetParent<ControlPanel>().root;
-            Godot.Button button = new Godot.Button();
-            button.Text = name;
-            button.Connect("button_down", this, "OnButtonDown");
-            button.Connect("button_up", this, "OnButtonUp");
-            AddChild(button);
+            Text = name;
+            Connect("button_down", this, "OnButtonDown");
+            Connect("button_up", this, "OnButtonUp");
         }
 
         public override void _Draw() {
@@ -65,7 +63,9 @@ public class ControlPanel : GridContainer
     {
         private static RandomNumberGenerator rng;
 
-        public SuccessorButton(string name) : base(name) { }
+        public SuccessorButton(string name) : base(name) {
+            Icon = LoadImageTexture("res://assets/BlueButton.png");
+        }
 
 
         public override void OnButtonUp() {
@@ -88,7 +88,9 @@ public class ControlPanel : GridContainer
 
     public class EmptyButton : Button
     {
-        public EmptyButton(string name) : base(name) { }
+        public EmptyButton(string name) : base(name) {
+            Icon = LoadImageTexture("res://assets/EmptyBlock.png");
+        }
 
         public override void OnButtonUp() {
             if (isDragging) {
@@ -108,7 +110,9 @@ public class ControlPanel : GridContainer
 
     public class RunButton : Button
     {
-        public RunButton(string name) : base(name) { }
+        public RunButton(string name) : base(name) {
+            Icon = LoadImageTexture("res://assets/PlayButton.png");
+        }
 
         public override void OnButtonDown() { }
 
@@ -156,7 +160,7 @@ public class ControlPanel : GridContainer
             base.OnButtonUp();
         }
     }
-    
+
     public class ExponentButton : Button
     {
         public ExponentButton(string name) : base(name) { }
@@ -176,15 +180,15 @@ public class ControlPanel : GridContainer
             base.OnButtonUp();
         }
     }
-    
+
     public class CustomButton : Button
     {
         private readonly ProgramSerde programSerde;
-        
+
         public CustomButton(string name, ProgramSerde programSerde) : base(name) {
             this.programSerde = programSerde;
         }
-        
+
         public override void OnButtonUp() {
             if (isDragging) {
                 MultiBlock multiBlock = ProgramSerde.FromProgramSerde(programSerde);
@@ -197,7 +201,7 @@ public class ControlPanel : GridContainer
 
             base.OnButtonUp();
         }
-        
+
         // TODO: HACKY AF
         public void RunToCompletionAndOutputUnitsInside(MultiplicationBlock destinationBlock) {
             MultiBlock multiBlock = ProgramSerde.FromProgramSerde(programSerde);
@@ -207,7 +211,7 @@ public class ControlPanel : GridContainer
                 if (multiBlock.StepProgram() == Block.ExitCode.FAILURE) {
                     throw new InvalidOperationException("program failed");
                 }
-                
+
                 if (multiBlock.GetBlocks().Count == 1) {
                     break;
                 } else {
@@ -217,12 +221,12 @@ public class ControlPanel : GridContainer
                     }
                 }
             }
-            
+
             // Transfer all units.
             multiBlock.GetBlocks()[0].GetUnits().ForEach(unit => {
                 destinationBlock.PushButton();
             });
-            
+
             // Delete the executed MultiBlock
             multiBlock.Free();
         }
@@ -230,7 +234,9 @@ public class ControlPanel : GridContainer
 
     public class SaveButton : Button
     {
-        public SaveButton(string name) : base(name) { }
+        public SaveButton(string name) : base(name) {
+            Icon = LoadImageTexture("res://assets/RecordButton.png");
+        }
 
         public override void OnButtonDown() { }
 
@@ -248,7 +254,7 @@ public class ControlPanel : GridContainer
                 MultiBlock multiBlock = rootBlock.contentNode.GetChild<MultiBlock>(0);
                 ProgramSerde programSerde = ProgramSerde.ToProgramSerde(multiBlock);
 
-                CustomButton button = new CustomButton("snog", programSerde);
+                CustomButton button = new CustomButton("TODO", programSerde);
                 GetTree().Root.GetChild<Node2D>(0).GetChild<ControlPanel>(1).AddChild(button);
             }
 
@@ -261,10 +267,18 @@ public class ControlPanel : GridContainer
 
     public override void _Ready() {
         root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
-        AddChild(new EmptyButton("Empty"));
-        AddChild(new SuccessorButton("Successor"));
+        AddChild(new EmptyButton(""));
+        AddChild(new SuccessorButton(""));
         // AddChild(new AdditionButton("Addition"));
         // AddChild(new MultiplicationButton("Multiplication"));
         // AddChild(new ExponentButton("Exponentiation"));
+    }
+
+
+    public static ImageTexture LoadImageTexture(string path) {
+        StreamTexture streamTexture = GD.Load<StreamTexture>(path);
+        ImageTexture imageTexture = new ImageTexture();
+        imageTexture.CreateFromImage(streamTexture.GetData());
+        return imageTexture;
     }
 }
