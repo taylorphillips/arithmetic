@@ -18,7 +18,7 @@ public class Block : Node2D
         private readonly Color color;
 
         public SelectableArea2D() : this(Colors.Gray) { }
-        
+
         public SelectableArea2D(Color color) {
             this.color = color;
             Name = "SelectableArea2D";
@@ -182,6 +182,15 @@ public class Block : Node2D
             return to.GlobalPosition + new Vector2(0, 40);
         } else {
             return to.GlobalPosition + new Vector2(0, -40);
+        }
+    }
+
+    public static Vector2 GetSerdeSnapPosition(ConnectorArea2D from, ConnectorArea2D to) {
+        Vector2 position = new Vector2(to.Position.x, to.GetParent<Block>().Position.y);
+        if (from.connectorType == ConnectorType.INPUT) {
+            return position + new Vector2(0, 80);
+        } else {
+            return position + new Vector2(0, -80);
         }
     }
 

@@ -83,7 +83,7 @@ public class ExponentBlock : Block
             return ExitCode.PARTIAL;
         }
         
-        // Remove Red units in multiplicand.
+        // Remove Red units in base number.
         foreach (Unit unit in input1Block.GetUnits()) {
             input1Block.contentNode.RemoveChild(unit);
             unit.Free();

@@ -262,12 +262,12 @@ public class ControlPanel : GridContainer
 
     public override void _Ready() {
         root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
+        AddChild(new SaveButton("Save"));
+        AddChild(new RunButton("Run"));
         AddChild(new EmptyButton("Empty"));
         AddChild(new SuccessorButton("Successor"));
-        AddChild(new RunButton("Run"));
         AddChild(new AdditionButton("Addition"));
         AddChild(new MultiplicationButton("Multiplication"));
         AddChild(new ExponentButton("Exponentiation"));
-        AddChild(new SaveButton("Save"));
     }
 }

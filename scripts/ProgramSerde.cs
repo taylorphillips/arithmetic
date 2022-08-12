@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Godot;
 using Newtonsoft.Json;
 
 public class ProgramSerde
@@ -11,7 +12,8 @@ public class ProgramSerde
         Block = 0,
         Successor = 1,
         Addition = 2,
-        Multiplication
+        Multiplication,
+        Exponent
     }
 
     public static BlockTypeEnum GetBlockType(Block block) {
@@ -150,6 +152,9 @@ public class ProgramSerde
             blockMap.TryGetValue(blockSerde.Identifier, out block);
             if (block == null) {
                 switch (blockSerde.BlockType) {
+                    case BlockTypeEnum.Exponent:
+                        block = new ExponentBlock();
+                        break;
                     case BlockTypeEnum.Multiplication:
                         block = new MultiplicationBlock();
                         break;
@@ -178,10 +183,9 @@ public class ProgramSerde
             Block block1 = blockMap[edge.Connector1.Block.Identifier];
             Block block2 = blockMap[edge.Connector2.Block.Identifier];
             multiBlock.Connect(block1.outputConnector, block2.inputConnectors[edge.Connector2.Index]);
-
-            block2.Position = Block.GetSnapPosition(
-                block2.inputConnectors[edge.Connector2.Index],
-                block1.outputConnector
+            block1.Position = Block.GetSerdeSnapPosition(
+                block1.outputConnector,
+                block2.inputConnectors[edge.Connector2.Index]
             );
         });
         
@@ -190,7 +194,6 @@ public class ProgramSerde
         for (int i = 0; i < programSerde.NumUnits; i++) {
             multiBlock.GetBlocks()[0].PushButton();
         }
-        
 
         return multiBlock;
     }
