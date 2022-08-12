@@ -157,6 +157,26 @@ public class ControlPanel : GridContainer
         }
     }
     
+    public class ExponentButton : Button
+    {
+        public ExponentButton(string name) : base(name) { }
+
+        public override void OnButtonUp() {
+            if (isDragging) {
+                ExponentBlock exponentBlock = new ExponentBlock();
+                MultiBlock multiBlock = new MultiBlock(exponentBlock);
+                // Children get downscaled 10x?
+                multiBlock.Scale = new Vector2(1f / 7, 1f / 7);
+                multiBlock.GlobalPosition = root.Block.GetLocalMousePosition();
+                root.Block.AddContent(multiBlock);
+            } else {
+                // No clicking behavior for Addition?
+            }
+
+            base.OnButtonUp();
+        }
+    }
+    
     public class CustomButton : Button
     {
         private readonly ProgramSerde programSerde;
@@ -247,6 +267,7 @@ public class ControlPanel : GridContainer
         AddChild(new RunButton("Run"));
         AddChild(new AdditionButton("Addition"));
         AddChild(new MultiplicationButton("Multiplication"));
+        AddChild(new ExponentButton("Exponentiation"));
         AddChild(new SaveButton("Save"));
     }
 }

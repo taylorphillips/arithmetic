@@ -21,7 +21,11 @@ public class SuccessorBlock : Block
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
 
-        AddChild(new SelectableArea2D());
+        AddChild(new SelectableArea2D(Colors.LightSalmon));
+
+        Label label = new Label();
+        label.Text = "S";
+        AddChild(label);
     }
 
     public override ExitCode Run() {

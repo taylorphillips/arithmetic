@@ -23,7 +23,11 @@ public class AdditionBlock : Block
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
 
-        AddChild(new SelectableArea2D());
+        AddChild(new SelectableArea2D(Colors.LightBlue));
+        
+        Label label = new Label();
+        label.Text = "+";
+        AddChild(label);
     }
 
     public override ExitCode Run() {

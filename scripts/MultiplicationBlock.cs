@@ -27,7 +27,11 @@ public class MultiplicationBlock : Block
         outputConnector = new ConnectorArea2D(ConnectorType.OUTPUT, new Vector2(0, 40));
         AddChild(outputConnector);
 
-        AddChild(new SelectableArea2D());
+        AddChild(new SelectableArea2D(Colors.Purple));
+        
+        Label label = new Label();
+        label.Text = "x";
+        AddChild(label);
     }
 
     public override ExitCode Run() {

@@ -15,11 +15,15 @@ public class Block : Node2D
 {
     public class SelectableArea2D : Area2D
     {
-        public SelectableArea2D() {
+        private readonly Color color;
+
+        public SelectableArea2D() : this(Colors.Gray) { }
+        
+        public SelectableArea2D(Color color) {
+            this.color = color;
             Name = "SelectableArea2D";
-            GD.Print("CREATED: " + Name + "-" + GetInstanceId());
             Polygon2D poly = new Polygon2D();
-            poly.Color = Colors.Gray;
+            poly.Color = color;
             poly.Polygon = new Vector2[] {
                 new Vector2(-40, -40),
                 new Vector2(40, -40),
@@ -51,6 +55,7 @@ public class Block : Node2D
             AddChild(staticBody2D);
         }
 
+        // TODO: Make selecting stuff way better, this is le suck.
         public override void _InputEvent(Object viewport, InputEvent @event, int shapeIdx) {
             Block parent = GetParent<Block>();
             if (!parent.IsSelectable) {
@@ -59,7 +64,6 @@ public class Block : Node2D
 
             if (@event is InputEventMouseButton mouseEvent) {
                 if (mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
-                    GD.Print("SELECTED: " + Name + "-" + GetInstanceId());
                     parent.select();
                 } else if (!mouseEvent.Pressed && mouseEvent.ButtonIndex == (int) ButtonList.Left) {
                     parent.deselect();
