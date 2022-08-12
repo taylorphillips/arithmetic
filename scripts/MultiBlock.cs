@@ -97,7 +97,7 @@ public class MultiBlock : Node2D
     private void RemoveConnection(ConnectorArea2D connectorArea2D) {
         if (connectorArea2D == null) {
             throw new InvalidOperationException();
-        }
+        } 
 
         if (GetConnection(connectorArea2D) != null) {
             // TODO: Make this more gentle so that order doesn't matter

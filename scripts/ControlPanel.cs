@@ -219,7 +219,6 @@ public class ControlPanel : GridContainer
             }
             
             // Transfer all units.
-            GD.Print( "BACKGROUND RUN YIELDS UNITS: " + multiBlock.GetBlocks()[0].GetUnits().Count);
             multiBlock.GetBlocks()[0].GetUnits().ForEach(unit => {
                 destinationBlock.PushButton();
             });
@@ -250,7 +249,7 @@ public class ControlPanel : GridContainer
                 ProgramSerde programSerde = ProgramSerde.ToProgramSerde(multiBlock);
 
                 CustomButton button = new CustomButton("snog", programSerde);
-                GetParent<ControlPanel>().AddChild(button);
+                GetTree().Root.GetChild<Node2D>(0).GetChild<ControlPanel>(1).AddChild(button);
             }
 
             base.OnButtonUp();
@@ -258,16 +257,14 @@ public class ControlPanel : GridContainer
     }
 
     // This is the block that represents the main window.
-    private RootMultiBlock root = new RootMultiBlock();
+    protected RootMultiBlock root = new RootMultiBlock();
 
     public override void _Ready() {
         root = GetTree().Root.GetChild<Node2D>(0).GetChild<RootMultiBlock>(0);
-        AddChild(new SaveButton("Save"));
-        AddChild(new RunButton("Run"));
         AddChild(new EmptyButton("Empty"));
         AddChild(new SuccessorButton("Successor"));
-        AddChild(new AdditionButton("Addition"));
-        AddChild(new MultiplicationButton("Multiplication"));
-        AddChild(new ExponentButton("Exponentiation"));
+        // AddChild(new AdditionButton("Addition"));
+        // AddChild(new MultiplicationButton("Multiplication"));
+        // AddChild(new ExponentButton("Exponentiation"));
     }
 }
